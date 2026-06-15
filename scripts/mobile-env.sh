@@ -69,6 +69,27 @@ resolve_supabase_secret_prefix() {
   esac
 }
 
+# GitHub Actions secret prefix for Android release signing (without _KEYSTORE_* suffix).
+# admin dev  → ADMIN_DEV_ANDROID
+# admin prod → ADMIN_PROD_ANDROID
+# client dev → DEV_ANDROID
+# client prod → PROD_ANDROID
+resolve_android_signing_secret_prefix() {
+  local app="$1"
+  local target="$2"
+  case "${app}-${target}" in
+    admin-dev) echo "ADMIN_DEV_ANDROID" ;;
+    admin-prod) echo "ADMIN_PROD_ANDROID" ;;
+    client-dev) echo "DEV_ANDROID" ;;
+    client-prod) echo "PROD_ANDROID" ;;
+    admin-local | client-local) echo "" ;;
+    *)
+      echo "ERROR: unknown app/target for signing: ${app}-${target}" >&2
+      return 1
+      ;;
+  esac
+}
+
 parse_run_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in

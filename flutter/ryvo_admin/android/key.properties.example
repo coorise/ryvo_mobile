@@ -1,0 +1,13 @@
+# Copy to .keys/<local|dev|prod>/key.properties
+# and place upload-keystore.jks in the same folder.
+#
+#   ./scripts/generate-android-keystore.sh admin local
+#   ./scripts/generate-android-keystore.sh admin dev
+#   ./scripts/generate-android-keystore.sh client prod
+#
+# storeFile is relative to the android/ directory.
+
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=ryvo-admin-local
+storeFile=.keys/local/upload-keystore.jks

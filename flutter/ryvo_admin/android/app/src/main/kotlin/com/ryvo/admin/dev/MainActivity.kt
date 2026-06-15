@@ -1,4 +1,4 @@
-package com.ryvo.admin.local
+package com.ryvo.admin.dev
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -41,6 +41,15 @@ jobs:
       - name: Apply package id (dev)
         run: chmod +x scripts/*.sh flutter/ryvo_admin/*.sh && ./scripts/set-package-id.sh admin dev
 
+      - name: Setup Android signing (admin dev)
+        env:
+          KEYSTORE_B64: ${{ secrets.ADMIN_DEV_ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ADMIN_DEV_ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ADMIN_DEV_ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ADMIN_DEV_ANDROID_KEY_ALIAS }}
+          REQUIRE_ANDROID_SIGNING: "1"
+        run: ./scripts/setup-android-signing.sh dev admin
+
       - name: Build admin release APK
         working-directory: flutter/ryvo_admin
         run: |
@@ -71,7 +80,7 @@ jobs:
             **Version:** `${{ steps.version.outputs.raw }}`
             **Tag:** `${{ steps.version.outputs.tag }}`
 
-            Dummy OTA test release — verify update dialog on relaunch.
+            First dev release with stable Android signing and OTA support.
 
             Automated dev build from branch `dev`.
           files: .github_releases/mobile/android/ryvo_admin-dev.apk

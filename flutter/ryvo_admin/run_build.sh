@@ -32,6 +32,7 @@ echo "==> ryvo_admin build ($MODE)"
 echo "    deploy: $RYVO_DEPLOY_TARGET"
 echo "    updates: $RYVO_UPDATE_CHANNEL"
 echo "    package: $(resolve_package_id admin)"
+echo "    signing: android/.keys/${RYVO_DEPLOY_TARGET}/"
 echo "    defines: ${APP_ROOT}/dart_defines.json"
 echo ""
 
@@ -42,6 +43,8 @@ if [[ "$MODE" == "dev" ]]; then
   echo ""
   echo "Done: $ROOT/build/app/outputs/flutter-apk/app-debug.apk"
 else
+  prepare_android_signing 1
+  export RYVO_DEPLOY_TARGET
   flutter build apk --release "${DART_DEFINES[@]}"
   echo ""
   echo "Done: $ROOT/build/app/outputs/flutter-apk/app-release.apk"

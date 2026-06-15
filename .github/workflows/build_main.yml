@@ -41,6 +41,15 @@ jobs:
       - name: Apply package id (prod)
         run: chmod +x scripts/*.sh flutter/ryvo_admin/*.sh && ./scripts/set-package-id.sh admin prod
 
+      - name: Setup Android signing (admin prod)
+        env:
+          KEYSTORE_B64: ${{ secrets.ADMIN_PROD_ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ADMIN_PROD_ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ADMIN_PROD_ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ADMIN_PROD_ANDROID_KEY_ALIAS }}
+          REQUIRE_ANDROID_SIGNING: "1"
+        run: ./scripts/setup-android-signing.sh prod admin
+
       - name: Build admin release APK
         working-directory: flutter/ryvo_admin
         run: |

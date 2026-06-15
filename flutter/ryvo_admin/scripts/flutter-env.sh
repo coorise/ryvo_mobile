@@ -37,6 +37,21 @@ apply_package_id() {
   "$MOBILE_ROOT/scripts/set-package-id.sh" admin "${RYVO_DEPLOY_TARGET}"
 }
 
+prepare_android_signing() {
+  local require="${1:-0}"
+  if [[ "$require" == "1" ]]; then
+    REQUIRE_ANDROID_SIGNING=1 "$MOBILE_ROOT/scripts/setup-android-signing.sh" \
+      "${RYVO_DEPLOY_TARGET}" admin
+  else
+    "$MOBILE_ROOT/scripts/setup-android-signing.sh" "${RYVO_DEPLOY_TARGET}" admin
+  fi
+}
+
+android_gradle_args() {
+  echo "--"
+  echo "-PdeployTarget=${RYVO_DEPLOY_TARGET}"
+}
+
 flutter_dart_defines() {
   "$MOBILE_ROOT/scripts/write-dart-defines.sh" "$APP_ROOT" "ryvo_admin" >/dev/null
   echo "--dart-define-from-file=${APP_ROOT}/dart_defines.json"
