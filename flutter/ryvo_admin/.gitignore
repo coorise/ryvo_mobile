@@ -48,3 +48,7 @@ app.*.map.json
 /android/app/release
 
 .github_releases/
+
+# Generated deploy-target icons (LOCAL/DEV badges)
+assets/icons/.generated/
+flutter_launcher_icons.generated.yaml

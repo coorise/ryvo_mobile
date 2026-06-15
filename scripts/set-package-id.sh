@@ -31,5 +31,6 @@ echo ""
 cd "$DIR"
 flutter pub get
 dart run change_app_package_name:main "$PKG"
+"$ROOT/scripts/apply-app-icons.sh" "$APP" "$TARGET"
 
 echo "Done: $PKG"

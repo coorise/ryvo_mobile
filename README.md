@@ -12,10 +12,17 @@ Remote: [github.com/coorise/ryvo_mobile](https://github.com/coorise/ryvo_mobile)
 | **Dev** | `--dev` | `com.ryvo.admin.dev` | `com.ryvo.client.dev` | Branch `dev` |
 | **Prod** | `--prod` | `com.ryvo.admin` | `com.ryvo.client` | Branch `main` |
 
-Package IDs are applied with [change_app_package_name](https://pub.dev/packages/change_app_package_name):
+Package IDs are applied with [change_app_package_name](https://pub.dev/packages/change_app_package_name). **Launcher icons** get a corner badge automatically:
+
+| Target | Badge |
+|--------|-------|
+| `local` | blue **LOCAL** |
+| `dev` | orange **DEV** |
+| `prod` | none (base icon) |
 
 ```bash
-./scripts/set-package-id.sh admin local   # or dev | prod
+./scripts/set-package-id.sh admin local   # or dev | prod (also refreshes icons)
+./scripts/apply-app-icons.sh admin dev    # icons only
 ./scripts/set-package-id.sh client local
 ```
 
