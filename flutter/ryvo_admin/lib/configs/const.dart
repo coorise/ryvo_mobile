@@ -3,7 +3,7 @@ class AppConst {
   AppConst._();
 
   static const appName = 'Ryvo-Line';
-  static const appTagline = 'Ride smarter';
+  static const appTagline = 'Ride smarter — OTA test build';
   static const packageId = 'com.ryvo.admin';
 
   static const supportedLanguages = ['en', 'fr', 'es', 'zh', 'de'];

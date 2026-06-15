@@ -82,6 +82,8 @@ jobs:
 
             First dev release with stable Android signing and OTA support.
 
+            **v1.0.1 OTA test:** tagline tweak — verify update dialog on relaunch.
+
             Automated dev build from branch `dev`.
           files: .github_releases/mobile/android/ryvo_admin-dev.apk
           prerelease: true
