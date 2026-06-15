@@ -41,7 +41,8 @@ class _UpdateCheckHostState extends State<UpdateCheckHost> {
       if (release == null || !mounted) return;
 
       final pkg = await _service.currentPackageInfo();
-      if (!release.isNewerThan(pkg.version, int.tryParse(pkg.buildNumber) ?? 0)) {
+      final currentBuild = int.tryParse(pkg.buildNumber) ?? 0;
+      if (!release.isNewerThan(pkg.version, currentBuild)) {
         return;
       }
 
@@ -50,13 +51,17 @@ class _UpdateCheckHostState extends State<UpdateCheckHost> {
       if (ignored == release.tagName) return;
 
       if (!mounted) return;
-      await _showDialog(release, pkg.version);
+      await _showDialog(release, pkg.version, currentBuild);
     } catch (_) {
       // Silent fail — OTA check must not block app usage.
     }
   }
 
-  Future<void> _showDialog(GithubReleaseInfo release, String currentVersion) async {
+  Future<void> _showDialog(
+    GithubReleaseInfo release,
+    String currentVersion,
+    int currentBuild,
+  ) async {
     final apk = release.apkAsset;
     if (apk == null) return;
 
@@ -65,10 +70,38 @@ class _UpdateCheckHostState extends State<UpdateCheckHost> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Update available'),
-        content: Text(
-          'A newer ${AppConst.appName} build is available '
-          '(v$currentVersion → v${release.version}).\n\n'
-          '${release.body.isEmpty ? 'Download and install the latest release from GitHub.' : release.body}',
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'A newer ${AppConst.appName} build is available on GitHub.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              _VersionRow(label: 'Installed', version: currentVersion, build: currentBuild),
+              const SizedBox(height: 8),
+              _VersionRow(
+                label: 'Available',
+                version: release.version,
+                build: release.buildNumber,
+                highlight: true,
+              ),
+              const SizedBox(height: 8),
+              Text('Release tag: ${release.tagName}', style: Theme.of(context).textTheme.bodySmall),
+              if (release.name.isNotEmpty && release.name != release.tagName) ...[
+                const SizedBox(height: 4),
+                Text(release.name, style: Theme.of(context).textTheme.bodySmall),
+              ],
+              if (release.body.trim().isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text('Release notes', style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Text(release.body.trim()),
+              ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -123,4 +156,27 @@ class _UpdateCheckHostState extends State<UpdateCheckHost> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+class _VersionRow extends StatelessWidget {
+  const _VersionRow({
+    required this.label,
+    required this.version,
+    required this.build,
+    this.highlight = false,
+  });
+
+  final String label;
+  final String version;
+  final int build;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontWeight: highlight ? FontWeight.w600 : FontWeight.normal,
+          color: highlight ? Theme.of(context).colorScheme.primary : null,
+        );
+    return Text('$label: v$version (build $build)', style: style);
+  }
 }

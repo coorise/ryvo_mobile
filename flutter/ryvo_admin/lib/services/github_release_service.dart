@@ -127,11 +127,12 @@ class GithubReleaseService {
   }
 
   (String, int)? _parseTag(String tag, String prefix) {
-    // ryvo_admin-dev-v1.0.0+2
+    // CI tags use 1.0.0-2; pub semver uses 1.0.0+2.
     final rest = tag.substring(prefix.length);
-    final plus = rest.split('+');
-    final version = plus.first.trim();
-    final build = plus.length > 1 ? int.tryParse(plus[1]) ?? 0 : 0;
+    final match = RegExp(r'^([\d.]+)(?:[+\-](\d+))?$').firstMatch(rest);
+    if (match == null) return null;
+    final version = match.group(1)!;
+    final build = int.tryParse(match.group(2) ?? '0') ?? 0;
     if (version.isEmpty) return null;
     return (version, build);
   }

@@ -57,7 +57,9 @@ jobs:
         id: version
         working-directory: flutter/ryvo_admin
         run: |
-          V=$(grep '^version:' pubspec.yaml | awk '{print $2}' | tr '+' '-')
+          RAW=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          V=$(echo "$RAW" | tr '+' '-')
+          echo "raw=$RAW" >> "$GITHUB_OUTPUT"
           echo "tag=ryvo_admin-dev-v${V}" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub release
@@ -65,7 +67,13 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Ryvo Admin (dev) ${{ steps.version.outputs.tag }}
-          body: Automated dev build from branch `dev`.
+          body: |
+            **Version:** `${{ steps.version.outputs.raw }}`
+            **Tag:** `${{ steps.version.outputs.tag }}`
+
+            Automated dev build from branch `dev`.
+
+            Open the installed dev app to receive an OTA update prompt on launch.
           files: .github_releases/mobile/android/ryvo_admin-dev.apk
           prerelease: true
 
