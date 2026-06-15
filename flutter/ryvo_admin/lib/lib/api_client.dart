@@ -1,0 +1,55 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import 'package:ryvo_admin/configs/env.dart';
+import 'package:ryvo_admin/configs/http.dart';
+
+class RequestOptions {
+  const RequestOptions({
+    this.method = 'GET',
+    this.token,
+    this.body,
+    this.headers = const {},
+  });
+
+  final String method;
+  final String? token;
+  final Object? body;
+  final Map<String, String> headers;
+}
+
+Future<T> apiRequest<T>(
+  String service,
+  String path, {
+  RequestOptions options = const RequestOptions(),
+}) async {
+  final base = Env.functionsBaseUrl.replaceAll(RegExp(r'/$'), '');
+  final url = Uri.parse('$base/$service$path');
+  final headers = <String, String>{
+    'Content-Type': 'application/json',
+    'apikey': Env.supabaseAnonKey,
+    ...options.headers,
+  };
+  if (options.token != null && options.token!.isNotEmpty) {
+    headers['Authorization'] = 'Bearer ${options.token}';
+  }
+
+  final res = await http.Client().send(
+    http.Request(options.method, url)
+      ..headers.addAll(headers)
+      ..body = options.body != null ? jsonEncode(options.body) : '',
+  );
+  final body = await res.stream.bytesToString();
+  dynamic json;
+  try {
+    json = body.isEmpty ? {} : jsonDecode(body);
+  } catch (_) {
+    json = {};
+  }
+
+  if (res.statusCode >= 400) {
+    throw apiErrorFromResponse(res.statusCode, json, res.reasonPhrase ?? 'HTTP ${res.statusCode}');
+  }
+  return unwrapApiData<T>(json);
+}
