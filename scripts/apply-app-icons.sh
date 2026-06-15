@@ -29,6 +29,10 @@ if [[ ! -f "$BASE_ICON" ]]; then
   exit 1
 fi
 
+if ! python3 -c "import PIL" 2>/dev/null; then
+  python3 -m pip install --quiet --user Pillow
+fi
+
 echo "==> apply-app-icons"
 echo "    app: $APP"
 echo "    target: $RYVO_DEPLOY_TARGET"
