@@ -80,12 +80,12 @@ class _UpdateCheckHostState extends State<UpdateCheckHost> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
-              _VersionRow(label: 'Installed', version: currentVersion, build: currentBuild),
+              _VersionRow(label: 'Installed', version: currentVersion, buildNumber: currentBuild),
               const SizedBox(height: 8),
               _VersionRow(
                 label: 'Available',
                 version: release.version,
-                build: release.buildNumber,
+                buildNumber: release.buildNumber,
                 highlight: true,
               ),
               const SizedBox(height: 8),
@@ -162,13 +162,13 @@ class _VersionRow extends StatelessWidget {
   const _VersionRow({
     required this.label,
     required this.version,
-    required this.build,
+    required this.buildNumber,
     this.highlight = false,
   });
 
   final String label;
   final String version;
-  final int build;
+  final int buildNumber;
   final bool highlight;
 
   @override
@@ -177,6 +177,6 @@ class _VersionRow extends StatelessWidget {
           fontWeight: highlight ? FontWeight.w600 : FontWeight.normal,
           color: highlight ? Theme.of(context).colorScheme.primary : null,
         );
-    return Text('$label: v$version (build $build)', style: style);
+    return Text('$label: v$version (build $buildNumber)', style: style);
   }
 }
