@@ -56,7 +56,13 @@ class Env {
 
   static bool get isDev => appEnv == 'development';
   static bool get isLocalDeploy => deployTarget == 'local';
-  static bool get checkGithubReleases => updateChannel == 'remote';
+
+  /// Remote OTA checks on dev/prod builds unless explicitly disabled via UPDATE_CHANNEL=local.
+  static bool get checkGithubReleases {
+    if (deployTarget == 'local') return false;
+    if (updateChannel == 'local') return false;
+    return updateChannel == 'remote' || deployTarget == 'dev' || deployTarget == 'prod';
+  }
 
   /// Release tag prefix, e.g. ryvo_admin-dev-v1.0.0+2
   static String releaseTagPrefix() {

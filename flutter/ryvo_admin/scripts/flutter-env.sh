@@ -40,6 +40,12 @@ apply_package_id() {
 flutter_dart_defines() {
   "$MOBILE_ROOT/scripts/write-dart-defines.sh" "$APP_ROOT" "ryvo_admin" >/dev/null
   echo "--dart-define-from-file=${APP_ROOT}/dart_defines.json"
+  # Repeat critical flags explicitly — some Flutter release builds skip file-only defines.
+  echo "--dart-define=DEPLOY_TARGET=${RYVO_DEPLOY_TARGET}"
+  echo "--dart-define=UPDATE_CHANNEL=${RYVO_UPDATE_CHANNEL}"
+  echo "--dart-define=GITHUB_REPO=${GITHUB_REPO}"
+  echo "--dart-define=APP_SLUG=ryvo_admin"
+  echo "--dart-define=RELEASE_BRANCH=$(resolve_release_branch)"
 }
 
 resolve_flutter_device() {

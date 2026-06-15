@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -46,10 +47,14 @@ import 'package:ryvo_admin/guards/abac.dart';
 import 'package:ryvo_admin/guards/admin_access.dart';
 import 'package:ryvo_admin/stores/auth_store.dart';
 
+/// Root navigator for dialogs (OTA update) above [GoRouter] routes.
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authProvider);
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: Routes.splash,
     redirect: (context, state) {
       final path = state.uri.path;

@@ -7,6 +7,7 @@ import 'package:ryvo_admin/components/landing/landing_city_grid.dart';
 import 'package:ryvo_admin/components/landing/landing_hero_actions.dart';
 import 'package:ryvo_admin/components/layout/site_header.dart';
 import 'package:ryvo_admin/components/ryvo/ryvo_button.dart';
+import 'package:ryvo_admin/components/update/update_check_host.dart';
 import 'package:ryvo_admin/configs/const.dart';
 import 'package:ryvo_admin/configs/landing_const.dart';
 import 'package:ryvo_admin/core/common/view_insets.dart';
@@ -39,6 +40,12 @@ class _LandingPageState extends ConsumerState<LandingPage> {
         'badge_dollar' => LucideIcons.badgeDollarSign,
         _ => LucideIcons.zap,
       };
+
+  @override
+  void initState() {
+    super.initState();
+    scheduleUpdatePrompt(context);
+  }
 
   @override
   void dispose() {

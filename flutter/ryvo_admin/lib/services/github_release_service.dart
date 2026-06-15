@@ -72,7 +72,7 @@ class GithubReleaseService {
   Future<PackageInfo> currentPackageInfo() => PackageInfo.fromPlatform();
 
   Future<GithubReleaseInfo?> fetchLatestForApp() async {
-    if (!Env.checkGithubReleases) return null;
+    if (!await _otaEnabled()) return null;
 
     final uri = Uri.parse(
       'https://api.github.com/repos/${Env.githubRepo}/releases?per_page=20',
@@ -91,7 +91,7 @@ class GithubReleaseService {
     final rows = jsonDecode(res.body);
     if (rows is! List) return null;
 
-    final prefix = Env.releaseTagPrefix();
+    final prefix = await _releaseTagPrefix();
     for (final row in rows) {
       if (row is! Map) continue;
       final map = Map<String, dynamic>.from(row);
@@ -124,6 +124,21 @@ class GithubReleaseService {
       );
     }
     return null;
+  }
+
+  Future<bool> _otaEnabled() async {
+    if (Env.checkGithubReleases) return true;
+    final pkg = await PackageInfo.fromPlatform();
+    if (pkg.packageName.endsWith('.local')) return false;
+    return pkg.packageName.endsWith('.dev') || pkg.packageName == 'com.ryvo.admin';
+  }
+
+  Future<String> _releaseTagPrefix() async {
+    if (Env.deployTarget != 'local') return Env.releaseTagPrefix();
+    final pkg = await PackageInfo.fromPlatform();
+    if (pkg.packageName.endsWith('.dev')) return '${Env.appSlug}-dev-v';
+    if (pkg.packageName == 'com.ryvo.admin') return '${Env.appSlug}-v';
+    return Env.releaseTagPrefix();
   }
 
   (String, int)? _parseTag(String tag, String prefix) {
