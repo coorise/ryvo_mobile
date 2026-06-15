@@ -71,9 +71,9 @@ jobs:
             **Version:** `${{ steps.version.outputs.raw }}`
             **Tag:** `${{ steps.version.outputs.tag }}`
 
-            Automated dev build from branch `dev`.
+            Dummy OTA test release — verify update dialog on relaunch.
 
-            Open the installed dev app to receive an OTA update prompt on launch.
+            Automated dev build from branch `dev`.
           files: .github_releases/mobile/android/ryvo_admin-dev.apk
           prerelease: true
 
