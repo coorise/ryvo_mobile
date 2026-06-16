@@ -1,0 +1,85 @@
+name: Build production mobile apps
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  RYVO_DEPLOY_TARGET: prod
+  RYVO_UPDATE_CHANNEL: remote
+  SUPABASE_URL: ${{ secrets.PROD_SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.PROD_SUPABASE_ANON_KEY }}
+  FUNCTIONS_URL: ${{ secrets.PROD_SUPABASE_FUNCTIONS_URL }}
+  GOOGLE_MAPS_API_KEY: ${{ secrets.PROD_GOOGLE_MAPS_API_KEY }}
+
+jobs:
+  build-admin-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android licenses
+        run: yes | flutter doctor --android-licenses
+
+      - name: Apply package id (prod)
+        run: chmod +x scripts/*.sh flutter/ryvo_admin/*.sh && ./scripts/set-package-id.sh admin prod
+
+      - name: Setup Android signing (admin prod)
+        env:
+          KEYSTORE_B64: ${{ secrets.ADMIN_PROD_ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ADMIN_PROD_ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ADMIN_PROD_ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ADMIN_PROD_ANDROID_KEY_ALIAS }}
+          REQUIRE_ANDROID_SIGNING: "1"
+        run: ./scripts/setup-android-signing.sh prod admin
+
+      - name: Build admin release APK
+        working-directory: flutter/ryvo_admin
+        run: |
+          chmod +x run_build.sh scripts/*.sh
+          ./run_build.sh release --prod
+
+      - name: Stage release artifact
+        run: |
+          mkdir -p .github_releases/mobile/android
+          cp flutter/ryvo_admin/build/app/outputs/flutter-apk/app-release.apk \
+            .github_releases/mobile/android/ryvo_admin.apk
+
+      - name: Read version
+        id: version
+        working-directory: flutter/ryvo_admin
+        run: |
+          V=$(grep '^version:' pubspec.yaml | awk '{print $2}' | tr '+' '-')
+          echo "tag=ryvo_admin-v${V}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Ryvo Admin (prod) ${{ steps.version.outputs.tag }}
+          body: Automated production build from branch `main`.
+          files: .github_releases/mobile/android/ryvo_admin.apk
+
+  build-client-android:
+    runs-on: ubuntu-latest
+    if: false # Enable when flutter/ryvo client app is ready for CI.
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "client app CI placeholder"
