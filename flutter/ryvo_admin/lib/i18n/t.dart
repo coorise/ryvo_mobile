@@ -42,6 +42,7 @@ class T {
     'landing.nav.cities': 'Cities',
     'landing.nav.drivers': 'Drivers',
     'landing.nav.safety': 'Safety',
+    'common.about': 'About',
   };
 
   static String nav(String key) => _nav[key] ?? key;

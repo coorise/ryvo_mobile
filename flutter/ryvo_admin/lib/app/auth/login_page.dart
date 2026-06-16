@@ -21,8 +21,8 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _email = TextEditingController(text: 'admin@ryvo-line.com');
-  final _password = TextEditingController(text: Env.isDev ? 'Admin@123' : '');
+  final _email = TextEditingController();
+  final _password = TextEditingController();
   var _loading = false;
   String? _error;
 
@@ -99,13 +99,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 24),
               ShadInput(
                 controller: _email,
-                placeholder: const Text('Email'),
+                placeholder: const Text('you@company.com'),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 12),
               ShadInput(
                 controller: _password,
-                placeholder: const Text('Password'),
+                placeholder: const Text('Your password'),
                 obscureText: true,
               ),
               if (_error != null) ...[

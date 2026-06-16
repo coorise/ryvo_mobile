@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import 'package:ryvo_admin/components/update/about_app_dialog.dart';
 import 'package:ryvo_admin/components/ryvo/brand_logo.dart';
 import 'package:ryvo_admin/components/ryvo/ryvo_button.dart';
 import 'package:ryvo_admin/configs/const.dart';
@@ -41,6 +42,13 @@ class SiteHeader extends ConsumerWidget {
                     onNavTap(link.sectionId);
                   },
                 ),
+              ListTile(
+                title: Text(T.nav('common.about'), style: const TextStyle(fontWeight: FontWeight.w600)),
+                onTap: () {
+                  Navigator.pop(context);
+                  showAboutAppDialog(context);
+                },
+              ),
               const Divider(),
               RyvoButton(
                 fullWidth: true,
@@ -136,6 +144,10 @@ class _DesktopNav extends StatelessWidget {
                   onPressed: () => onNavTap(link.sectionId),
                   child: Text(T.nav('landing.nav.${link.sectionId}')),
                 ),
+              TextButton(
+                onPressed: () => showAboutAppDialog(context),
+                child: Text(T.nav('common.about')),
+              ),
             ],
           ),
         ),

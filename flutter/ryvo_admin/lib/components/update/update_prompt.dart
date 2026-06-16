@@ -1,38 +1,28 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:ryvo_admin/components/update/app_update.dart';
 import 'package:ryvo_admin/configs/const.dart';
-import 'package:ryvo_admin/configs/env.dart';
 import 'package:ryvo_admin/services/github_release_service.dart';
 
 /// Prompts for a GitHub release update when a newer dev/prod APK exists.
 class UpdatePrompt {
   UpdatePrompt._();
 
-  static final _service = GithubReleaseService();
   static var _checkedThisSession = false;
-
-  static Future<bool> _otaEnabled() async {
-    if (Env.checkGithubReleases) return true;
-    final pkg = await PackageInfo.fromPlatform();
-    if (pkg.packageName.endsWith('.local')) return false;
-    return pkg.packageName.endsWith('.dev') || pkg.packageName == 'com.ryvo.admin';
-  }
 
   static Future<void> maybeShow(BuildContext context) async {
     if (_checkedThisSession) return;
-    if (!await _otaEnabled()) return;
+    if (!await AppUpdate.otaEnabled()) return;
     _checkedThisSession = true;
 
     try {
-      final release = await _service.fetchLatestForApp();
+      final release = await AppUpdate.fetchLatestRelease();
       if (release == null || !context.mounted) return;
 
-      final pkg = await _service.currentPackageInfo();
+      final pkg = await AppUpdate.currentPackageInfo();
       final currentBuild = int.tryParse(pkg.buildNumber) ?? 0;
-      if (!release.isNewerThan(pkg.version, currentBuild)) return;
+      if (!AppUpdate.isNewerRelease(release, pkg)) return;
 
       final prefs = await SharedPreferences.getInstance();
       final ignored = prefs.getString(AppConst.storageIgnoredRelease) ?? '';
@@ -117,27 +107,9 @@ class UpdatePrompt {
     if (action != 'download') return;
     if (!context.mounted) return;
 
-    showDialog<void>(
-      context: context,
-      useRootNavigator: true,
-      barrierDismissible: false,
-      builder: (_) => const AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Expanded(child: Text('Downloading update…')),
-          ],
-        ),
-      ),
-    );
-
     try {
-      final file = await _service.downloadApk(apk);
-      if (context.mounted) Navigator.pop(context);
-      await _service.installDownloadedApk(file);
+      await AppUpdate.downloadAndInstall(context, release);
     } catch (e) {
-      if (context.mounted) Navigator.pop(context);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Update failed: $e')),

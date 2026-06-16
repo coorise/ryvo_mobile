@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:ryvo_admin/configs/env.dart';
 import 'package:ryvo_admin/components/update/update_prompt.dart';
 
 /// Legacy wrapper — OTA prompt now runs from [LandingPage] where navigator context is ready.
