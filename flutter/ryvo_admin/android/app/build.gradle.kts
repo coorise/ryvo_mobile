@@ -14,6 +14,26 @@ val deployTarget = (
         ?: "local"
     ).lowercase()
 
+fun readMapsKeyFromDartDefines(): String {
+    val file = rootProject.file("../dart_defines.json")
+    if (!file.exists()) return ""
+    val match = Regex(""""GOOGLE_MAPS_API_KEY"\s*:\s*"([^"]*)"""")
+        .find(file.readText())
+    return match?.groupValues?.get(1)?.trim().orEmpty()
+}
+
+val googleMapsApiKey = (
+    project.findProperty("googleMapsApiKey") as String?
+        ?: System.getenv("GOOGLE_MAPS_API_KEY")
+        ?: readMapsKeyFromDartDefines()
+    ).trim()
+
+val appId = when (deployTarget) {
+    "prod" -> "com.ryvo.admin"
+    "dev" -> "com.ryvo.admin.dev"
+    else -> "com.ryvo.admin.local"
+}
+
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file(".keys/$deployTarget/key.properties")
 val releaseSigningReady = keystorePropertiesFile.exists().also { found ->
@@ -23,7 +43,7 @@ val releaseSigningReady = keystorePropertiesFile.exists().also { found ->
 }
 
 android {
-    namespace = "com.ryvo.admin.dev"
+    namespace = appId
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -38,13 +58,14 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.ryvo.admin.dev"
+        applicationId = appId
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
     }
 
     signingConfigs {

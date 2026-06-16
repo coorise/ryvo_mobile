@@ -61,6 +61,24 @@ class Abac {
     return hasPermission(user, 'staff:read') || hasPermission(user, 'roles:read');
   }
 
+  static bool canEditSettingsTab(
+    SessionUser? user,
+    String tab,
+  ) {
+    if (user == null) return false;
+    if (tab == 'profile') return true;
+    if (tab == 'general') return hasPermission(user, 'settings:update');
+    if (tab == 'payment') return hasPermission(user, 'settings:payment:update');
+    if (tab == 'mail') {
+      return hasPermission(user, 'settings:mail:update') ||
+          hasPermission(user, 'settings:email_templates');
+    }
+    if (tab == 'notifications') {
+      return hasPermission(user, 'settings:notifications:update');
+    }
+    return false;
+  }
+
   static String dashboardPathForUser(SessionUser? user) {
     if (user == null) return Routes.authLogin;
     if (canAccessAdmin(user) || canAccessDashboard(user)) return Routes.adminHome;

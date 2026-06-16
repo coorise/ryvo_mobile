@@ -40,6 +40,7 @@ import 'package:ryvo_admin/app/auth/otp_page.dart';
 import 'package:ryvo_admin/app/auth/reset_password_page.dart';
 import 'package:ryvo_admin/app/legal/legal_scaffold_page.dart';
 import 'package:ryvo_admin/app/landing/landing_page.dart';
+import 'package:ryvo_admin/app/search/search_page.dart';
 import 'package:ryvo_admin/app/splash.dart';
 import 'package:ryvo_admin/components/layout/admin_shell.dart';
 import 'package:ryvo_admin/configs/const.dart';
@@ -121,6 +122,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => AdminShell(child: child),
         routes: [
           GoRoute(
+            path: Routes.search,
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: AdminSearchPage()),
+          ),
+          GoRoute(
             path: Routes.adminHome,
             pageBuilder: (context, state) =>
                 const NoTransitionPage(child: AdminHomePage()),
@@ -200,7 +206,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: 'communication',
-                redirect: (_, _) => Routes.adminCommNotifications,
+                redirect: (context, state) {
+                  final path = state.uri.path;
+                  if (path == Routes.adminComm ||
+                      path == '${Routes.adminComm}/') {
+                    return Routes.adminCommNotifications;
+                  }
+                  return null;
+                },
                 routes: [
                   GoRoute(
                     path: 'notifications',
@@ -270,7 +283,13 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: 'hr',
-                redirect: (_, _) => Routes.adminHrFeedbacks,
+                redirect: (context, state) {
+                  final path = state.uri.path;
+                  if (path == Routes.adminHr || path == '${Routes.adminHr}/') {
+                    return Routes.adminHrFeedbacks;
+                  }
+                  return null;
+                },
                 routes: [
                   GoRoute(
                     path: 'feedbacks',
@@ -281,7 +300,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: 'finance',
-                redirect: (_, _) => Routes.adminFinanceReferrals,
+                redirect: (context, state) {
+                  final path = state.uri.path;
+                  if (path == Routes.adminFinance ||
+                      path == '${Routes.adminFinance}/') {
+                    return Routes.adminFinanceReferrals;
+                  }
+                  return null;
+                },
                 routes: [
                   GoRoute(
                     path: 'referrals',
@@ -312,7 +338,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: 'settings',
-                redirect: (_, _) => Routes.adminSettingsProfile,
+                redirect: (context, state) {
+                  final path = state.uri.path;
+                  if (path == Routes.adminSettings ||
+                      path == '${Routes.adminSettings}/') {
+                    return Routes.adminSettingsProfile;
+                  }
+                  return null;
+                },
                 routes: [
                   GoRoute(
                     path: 'profile',

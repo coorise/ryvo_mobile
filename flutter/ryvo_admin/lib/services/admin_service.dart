@@ -93,6 +93,13 @@ class AdminService {
     );
   }
 
+  Future<Map<String, dynamic>> getPublicSettings() {
+    return apiRequest<Map<String, dynamic>>(
+      'profile-service',
+      '/v1/settings/public',
+    );
+  }
+
   Future<Map<String, dynamic>> getSettings(String? token) {
     return apiRequest<Map<String, dynamic>>(
       'profile-service',

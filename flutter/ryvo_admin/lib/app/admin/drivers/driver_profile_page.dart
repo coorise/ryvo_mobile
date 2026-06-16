@@ -8,10 +8,11 @@ import 'package:ryvo_admin/components/admin/profile_header.dart';
 import 'package:ryvo_admin/components/admin/profile_manage_section.dart';
 import 'package:ryvo_admin/configs/const.dart';
 import 'package:ryvo_admin/guards/permission_gate.dart';
-import 'package:ryvo_admin/hooks/use_auth.dart';
+import 'package:ryvo_admin/stores/auth_store.dart';
 import 'package:ryvo_admin/hooks/use_rbac.dart';
 import 'package:ryvo_admin/services/drivers_service.dart';
 import 'package:ryvo_admin/services/rbac_service.dart';
+import 'package:ryvo_admin/services/vehicles_service.dart';
 
 const _tabInfo = 'info';
 const _tabVehicles = 'vehicles';
@@ -76,7 +77,7 @@ class _DriverProfilePageState extends ConsumerState<DriverProfilePage>
   }
 
   Future<_DriverProfilePayload> _load(String driverId) async {
-    final token = useAuth(ref).accessToken;
+    final token = ref.read(authProvider).accessToken;
     final results = await Future.wait([
       driversService.getDriver(token, driverId),
       rbacService.getUserDetail(token, driverId),
@@ -257,7 +258,10 @@ class _DriverProfilePageState extends ConsumerState<DriverProfilePage>
                                 builder: (context, _) {
                                   switch (_tabController.index) {
                                     case 1:
-                                      return _VehiclesTab(vehicles: vehicles);
+                                      return _VehiclesTab(
+                                        vehicles: vehicles,
+                                        onChanged: _refresh,
+                                      );
                                     case 2:
                                       return _DocumentsTab(
                                         driverId: driverId,
@@ -384,58 +388,259 @@ class _ReviewsSection extends StatelessWidget {
   }
 }
 
-class _VehiclesTab extends StatelessWidget {
-  const _VehiclesTab({required this.vehicles});
+class _VehiclesTab extends ConsumerStatefulWidget {
+  const _VehiclesTab({required this.vehicles, required this.onChanged});
 
   final List<Map<String, dynamic>> vehicles;
+  final VoidCallback onChanged;
+
+  @override
+  ConsumerState<_VehiclesTab> createState() => _VehiclesTabState();
+}
+
+class _VehiclesTabState extends ConsumerState<_VehiclesTab> {
+  bool _busy = false;
+
+  Future<void> _reviewVehicle(
+    String vehicleId,
+    String status, {
+    String? reason,
+  }) async {
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await vehiclesService.reviewVehicle(
+        ref.read(authProvider).accessToken,
+        vehicleId,
+        status,
+        rejectionReason: reason,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text('Vehicle marked as $status.')),
+      );
+      widget.onChanged();
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to review vehicle: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _rejectVehicle(String vehicleId) async {
+    final reasonCtrl = TextEditingController(
+      text: 'Vehicle does not meet requirements.',
+    );
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reject vehicle'),
+        content: TextField(
+          controller: reasonCtrl,
+          decoration: const InputDecoration(labelText: 'Reason'),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, reasonCtrl.text.trim()),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
+    );
+    reasonCtrl.dispose();
+    if (reason == null || reason.isEmpty) return;
+    await _reviewVehicle(vehicleId, 'rejected', reason: reason);
+  }
+
+  Future<void> _reviewVehicleDocument(
+    String vehicleId,
+    String docId,
+    String status, {
+    String? reason,
+  }) async {
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await vehiclesService.reviewVehicleDocument(
+        ref.read(authProvider).accessToken,
+        vehicleId,
+        docId,
+        status,
+        rejectionReason: reason,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text('Document marked as $status.')),
+      );
+      widget.onChanged();
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to review document: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _viewVehicleDocument(String vehicleId, String docId) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final res = await vehiclesService.adminGetDocumentViewUrl(
+        ref.read(authProvider).accessToken,
+        vehicleId,
+        docId,
+      );
+      final url = res['url']?.toString() ?? res['view_url']?.toString();
+      if (url == null || url.isEmpty) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('No view URL returned.')),
+        );
+        return;
+      }
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Document URL'),
+          content: SelectableText(url),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to open document: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (vehicles.isEmpty) {
+    if (widget.vehicles.isEmpty) {
       return const Text('No vehicles registered for this driver.');
     }
 
-    return Column(
-      children: vehicles.map((vehicle) {
-        final docs = _asMapList(vehicle['documents']);
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${vehicle['make'] ?? '—'} ${vehicle['model'] ?? ''}'.trim(),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text('Plate: ${vehicle['plate_number'] ?? '—'}'),
-                Text('Color: ${vehicle['color'] ?? '—'}'),
-                Text('Status: ${vehicle['status'] ?? '—'}'),
-                if (docs.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Documents (${docs.length})',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  ...docs.map(
-                    (doc) => ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(doc['doc_type']?.toString() ?? 'Document'),
-                      trailing: StatusBadge(
-                        label: doc['status']?.toString() ?? 'unknown',
-                        variant: _docVariant(doc['status']?.toString()),
+    return PermissionGate(
+      permissions: const ['drivers:update', 'kyc:review'],
+      fallback: const Text('You do not have permission to review vehicles.'),
+      child: Column(
+        children: widget.vehicles.map((vehicle) {
+          final vehicleId = vehicle['id']?.toString() ?? '';
+          final status = vehicle['status']?.toString() ?? 'unknown';
+          final docs = _asMapList(vehicle['documents']);
+          final canApproveVehicle = status == 'pending';
+          final canRejectVehicle = status == 'approved' || status == 'pending';
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${vehicle['make'] ?? '—'} ${vehicle['model'] ?? ''}'.trim(),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                       ),
-                    ),
+                      StatusBadge(
+                        label: status,
+                        variant: _docVariant(status),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 8),
+                  Text('Plate: ${vehicle['plate_number'] ?? '—'}'),
+                  Text('Color: ${vehicle['color'] ?? '—'}'),
+                  if (vehicleId.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        if (canApproveVehicle)
+                          FilledButton(
+                            onPressed: _busy
+                                ? null
+                                : () => _reviewVehicle(vehicleId, 'approved'),
+                            child: const Text('Approve vehicle'),
+                          ),
+                        if (canRejectVehicle)
+                          OutlinedButton(
+                            onPressed:
+                                _busy ? null : () => _rejectVehicle(vehicleId),
+                            child: const Text('Reject vehicle'),
+                          ),
+                      ],
+                    ),
+                  ],
+                  if (docs.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Documents (${docs.length})',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    ...docs.map((doc) {
+                      final docId = doc['id']?.toString() ?? '';
+                      final docStatus = doc['status']?.toString() ?? 'unknown';
+                      final canView = docId.isNotEmpty && docStatus != 'missing';
+                      final canApprove = docStatus == 'pending';
+                      return ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(doc['doc_type']?.toString() ?? 'Document'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            StatusBadge(
+                              label: docStatus,
+                              variant: _docVariant(docStatus),
+                            ),
+                            if (canView)
+                              IconButton(
+                                tooltip: 'View',
+                                onPressed: _busy
+                                    ? null
+                                    : () => _viewVehicleDocument(
+                                          vehicleId,
+                                          docId,
+                                        ),
+                                icon: const Icon(LucideIcons.eye, size: 18),
+                              ),
+                            if (canApprove && vehicleId.isNotEmpty && docId.isNotEmpty)
+                              IconButton(
+                                tooltip: 'Approve',
+                                onPressed: _busy
+                                    ? null
+                                    : () => _reviewVehicleDocument(
+                                          vehicleId,
+                                          docId,
+                                          'approved',
+                                        ),
+                                icon: const Icon(LucideIcons.check, size: 18),
+                              ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        );
-      }).toList(growable: false),
+          );
+        }).toList(growable: false),
+      ),
     );
   }
 }
@@ -466,7 +671,7 @@ class _DocumentsTabState extends ConsumerState<_DocumentsTab> {
   }
 
   Future<void> _viewDocument(String docType) async {
-    final token = useAuth(ref).accessToken;
+    final token = ref.read(authProvider).accessToken;
     final messenger = ScaffoldMessenger.of(context);
     try {
       final res = await driversService.getDocumentViewUrl(
@@ -508,7 +713,7 @@ class _DocumentsTabState extends ConsumerState<_DocumentsTab> {
     String? reason,
   }) async {
     setState(() => _busy = true);
-    final token = useAuth(ref).accessToken;
+    final token = ref.read(authProvider).accessToken;
     final messenger = ScaffoldMessenger.of(context);
     try {
       await driversService.reviewDocument(

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ryvo_admin/configs/const.dart';
 import 'package:ryvo_admin/guards/permission_gate.dart';
-import 'package:ryvo_admin/hooks/use_auth.dart';
+import 'package:ryvo_admin/stores/auth_store.dart';
 import 'package:ryvo_admin/hooks/use_rbac.dart';
 import 'package:ryvo_admin/services/rbac_service.dart';
 
@@ -29,7 +29,7 @@ class _AssignRolePageState extends ConsumerState<AssignRolePage> {
   Future<void> _submit(List<Map<String, dynamic>> assignableRoles) async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _submitting = true);
-    final token = useAuth(ref).accessToken;
+    final token = ref.read(authProvider).accessToken;
     final messenger = ScaffoldMessenger.of(context);
 
     try {

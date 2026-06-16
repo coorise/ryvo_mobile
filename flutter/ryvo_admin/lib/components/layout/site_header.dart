@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import 'package:ryvo_admin/components/layout/language_switcher.dart';
 import 'package:ryvo_admin/components/update/about_app_dialog.dart';
 import 'package:ryvo_admin/components/ryvo/brand_logo.dart';
 import 'package:ryvo_admin/components/ryvo/ryvo_button.dart';
@@ -12,6 +13,7 @@ import 'package:ryvo_admin/core/common/view_insets.dart';
 import 'package:ryvo_admin/guards/abac.dart';
 import 'package:ryvo_admin/hooks/use_auth.dart';
 import 'package:ryvo_admin/i18n/t.dart';
+import 'package:ryvo_admin/stores/locale_store.dart';
 import 'package:ryvo_admin/stores/theme_store.dart';
 
 class SiteHeader extends ConsumerWidget {
@@ -49,6 +51,11 @@ class SiteHeader extends ConsumerWidget {
                   showAboutAppDialog(context);
                 },
               ),
+              const SizedBox(height: 8),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: LanguageSwitcher(compact: false),
+              ),
               const Divider(),
               RyvoButton(
                 fullWidth: true,
@@ -71,6 +78,7 @@ class SiteHeader extends ConsumerWidget {
     final loggedIn = auth.isReady && auth.user != null;
     final dashboardPath = Abac.dashboardPathForUser(auth.user);
     final themeMode = ref.watch(themeModeProvider);
+    ref.watch(localeProvider);
     final isDark = themeMode == ThemeMode.dark;
     final wide = MediaQuery.sizeOf(context).width >= 1024;
 
@@ -88,6 +96,7 @@ class SiteHeader extends ConsumerWidget {
                   BrandLogo(href: Routes.landing),
                   const Spacer(),
                   if (wide) _DesktopNav(onNavTap: onNavTap),
+                  if (wide) const LanguageSwitcher(compact: true),
                   IconButton(
                     tooltip: isDark ? 'Light mode' : 'Dark mode',
                     onPressed: () => ref.read(themeModeProvider.notifier).toggle(),

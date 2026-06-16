@@ -7,7 +7,7 @@ import 'package:ryvo_admin/components/admin/profile_header.dart';
 import 'package:ryvo_admin/components/admin/profile_manage_section.dart';
 import 'package:ryvo_admin/configs/const.dart';
 import 'package:ryvo_admin/guards/permission_gate.dart';
-import 'package:ryvo_admin/hooks/use_auth.dart';
+import 'package:ryvo_admin/stores/auth_store.dart';
 import 'package:ryvo_admin/hooks/use_rbac.dart';
 import 'package:ryvo_admin/services/rbac_service.dart';
 
@@ -33,7 +33,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage> {
   }
 
   Future<Map<String, dynamic>> _load(String userId) {
-    final token = useAuth(ref).accessToken;
+    final token = ref.read(authProvider).accessToken;
     return rbacService.getUserDetail(token, userId);
   }
 

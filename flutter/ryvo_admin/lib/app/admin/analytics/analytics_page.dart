@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'package:ryvo_admin/components/admin/admin_list_ui.dart';
 import 'package:ryvo_admin/guards/permission_gate.dart';
+import 'package:ryvo_admin/lib/csv_export.dart';
 import 'package:ryvo_admin/services/admin_service.dart';
 import 'package:ryvo_admin/stores/auth_store.dart';
 
@@ -71,78 +72,58 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
                   subtitle: 'Trends, quality signals, and demand distribution.',
                 ),
                 const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ...['7d', '30d', '90d', '1y'].map(
-                      (period) => ChoiceChip(
-                        label: Text(period),
-                        selected: _period == period,
-                        onSelected: (_) => setState(() => _period = period),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    AdminFilterSelect(
-                      width: 150,
-                      value: _audience,
-                      onChanged: (v) => setState(() => _audience = v),
-                      options: const [
-                        AdminFilterOption(value: 'all', label: 'All audiences'),
-                        AdminFilterOption(value: 'clients', label: 'Clients'),
-                        AdminFilterOption(value: 'drivers', label: 'Drivers'),
-                      ],
-                    ),
-                    ShadButton.outline(
-                      onPressed: () {},
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(LucideIcons.download, size: 16),
-                          SizedBox(width: 6),
-                          Text('Export PDF'),
-                        ],
-                      ),
-                    ),
-                  ],
+                _AnalyticsToolbar(
+                  period: _period,
+                  audience: _audience,
+                  onPeriodChanged: (p) => setState(() => _period = p),
+                  onAudienceChanged: (a) => setState(() => _audience = a),
+                  onExport: () {
+                    final body = _buildAnalyticsExport(
+                      period: _period,
+                      audience: _audience,
+                      kpis: kpis,
+                      volume: volume,
+                      ratings: ratings,
+                      experience: experience,
+                      destinations: destinations,
+                    );
+                    showTextExportDialog(
+                      context,
+                      title: 'Export analytics summary',
+                      body: body,
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
-                AdminStatGrid(
-                  children: [
-                    AdminStatCard(
-                      icon: LucideIcons.users,
-                      label: 'Active Users',
-                      value: NumberFormat.decimalPattern().format(
-                        (kpis['activeUsers'] as num?)?.toInt() ?? 0,
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final columns = constraints.maxWidth >= 1280
+                        ? 6
+                        : constraints.maxWidth >= 760
+                        ? 3
+                        : 2;
+                    final kpisList = _analyticsKpis(kpis);
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: kpisList.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 2.0,
                       ),
-                    ),
-                    AdminStatCard(
-                      icon: LucideIcons.car,
-                      label: 'Completed Trips',
-                      value: NumberFormat.decimalPattern().format(
-                        (kpis['completedTrips'] as num?)?.toInt() ?? 0,
-                      ),
-                    ),
-                    AdminStatCard(
-                      icon: LucideIcons.star,
-                      label: 'Avg Rating',
-                      value: ((kpis['avgRating'] as num?)?.toDouble() ?? 0)
-                          .toStringAsFixed(2),
-                      tone: AdminStatTone.success,
-                    ),
-                    AdminStatCard(
-                      icon: LucideIcons.xCircle,
-                      label: 'Cancel Rate',
-                      value:
-                          '${((kpis['cancelRate'] as num?)?.toDouble() ?? 0).toStringAsFixed(1)}%',
-                      tone: AdminStatTone.warning,
-                    ),
-                  ],
+                      itemBuilder: (context, index) {
+                        final item = kpisList[index];
+                        return AdminKpiCard(label: item.label, value: item.value);
+                      },
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
-                _SimpleChartPanel(
+                AdminChartPanel(
                   title: 'Ride Volume',
-                  subtitle: 'Trips over selected period',
+                  description: 'Trips over selected period',
                   child: _VerticalBars(
                     rows: volume,
                     valueKey: 'trips',
@@ -151,47 +132,34 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final wide = constraints.maxWidth > 980;
-                    return Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        SizedBox(
-                          width: wide
-                              ? constraints.maxWidth * 0.49
-                              : constraints.maxWidth,
-                          child: _SimpleChartPanel(
-                            title: 'Ratings Distribution',
-                            child: _HorizontalBars(
-                              rows: ratings,
-                              valueKey: 'count',
-                              labelBuilder: (row) => '${row['stars'] ?? '?'}★',
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: wide
-                              ? constraints.maxWidth * 0.49
-                              : constraints.maxWidth,
-                          child: _SimpleChartPanel(
-                            title: 'Experience',
-                            child: _HorizontalBars(
-                              rows: experience,
-                              valueKey: 'score',
-                              labelBuilder: (row) =>
-                                  '${row['metric'] ?? 'Metric'}',
-                              maxOverride: 5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                AdminMobileColumnTabs(
+                  tabHeight: 300,
+                  wideBreakpoint: 980,
+                  tabs: const ['Ratings', 'Experience'],
+                  children: [
+                    AdminChartPanel(
+                      title: 'Ratings Distribution',
+                      minHeight: 180,
+                      child: _HorizontalBars(
+                        rows: ratings,
+                        valueKey: 'count',
+                        labelBuilder: (row) => '${row['stars'] ?? '?'}★',
+                      ),
+                    ),
+                    AdminChartPanel(
+                      title: 'Experience',
+                      minHeight: 180,
+                      child: _HorizontalBars(
+                        rows: experience,
+                        valueKey: 'score',
+                        labelBuilder: (row) => '${row['metric'] ?? 'Metric'}',
+                        maxOverride: 5,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
-                _SimpleChartPanel(
+                AdminChartPanel(
                   title: 'Top Destinations',
                   child: _DestinationsTable(rows: destinations),
                 ),
@@ -204,47 +172,119 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
   }
 }
 
-class _SimpleChartPanel extends StatelessWidget {
-  const _SimpleChartPanel({
-    required this.title,
-    this.subtitle,
-    required this.child,
+class _AnalyticsKpi {
+  const _AnalyticsKpi({required this.label, required this.value});
+  final String label;
+  final String value;
+}
+
+List<_AnalyticsKpi> _analyticsKpis(Map<String, dynamic> kpis) {
+  return [
+    _AnalyticsKpi(
+      label: 'Active Users',
+      value: NumberFormat.decimalPattern().format(
+        (kpis['activeUsers'] as num?)?.toInt() ?? 0,
+      ),
+    ),
+    _AnalyticsKpi(
+      label: 'Completed Trips',
+      value: NumberFormat.decimalPattern().format(
+        (kpis['completedTrips'] as num?)?.toInt() ?? 0,
+      ),
+    ),
+    _AnalyticsKpi(
+      label: 'Avg Rating',
+      value: ((kpis['avgRating'] as num?)?.toDouble() ?? 0).toStringAsFixed(2),
+    ),
+    _AnalyticsKpi(
+      label: 'Cancel Rate',
+      value: '${((kpis['cancelRate'] as num?)?.toDouble() ?? 0).toStringAsFixed(1)}%',
+    ),
+    _AnalyticsKpi(
+      label: 'Avg Wait',
+      value: '${(kpis['avgWaitMin'] as num?)?.toInt() ?? 0} min',
+    ),
+    _AnalyticsKpi(
+      label: 'Driver Hours',
+      value: NumberFormat.decimalPattern().format(
+        (kpis['driverOnlineHours'] as num?)?.toInt() ?? 0,
+      ),
+    ),
+  ];
+}
+
+class _AnalyticsToolbar extends StatelessWidget {
+  const _AnalyticsToolbar({
+    required this.period,
+    required this.audience,
+    required this.onPeriodChanged,
+    required this.onAudienceChanged,
+    required this.onExport,
   });
 
-  final String title;
-  final String? subtitle;
-  final Widget child;
+  final String period;
+  final String audience;
+  final ValueChanged<String> onPeriodChanged;
+  final ValueChanged<String> onAudienceChanged;
+  final VoidCallback onExport;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 520;
+        final filters = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AdminPeriodPillBar(
+              periods: const ['7d', '30d', '90d', '1y'],
+              selected: period,
+              onSelected: onPeriodChanged,
+            ),
+            const SizedBox(height: 10),
+            AdminFilterSelect(
+              value: audience,
+              onChanged: onAudienceChanged,
+              options: const [
+                AdminFilterOption(value: 'all', label: 'All audiences'),
+                AdminFilterOption(value: 'clients', label: 'Clients'),
+                AdminFilterOption(value: 'drivers', label: 'Drivers'),
+              ],
+            ),
+          ],
+        );
+        final exportBtn = ShadButton.outline(
+          onPressed: onExport,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(LucideIcons.download, size: 16),
+              SizedBox(width: 6),
+              Text('Export PDF'),
+            ],
+          ),
+        );
+
+        if (narrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              filters,
+              const SizedBox(height: 10),
+              Align(alignment: Alignment.centerLeft, child: exportBtn),
+            ],
+          );
+        }
+
+        return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            if (subtitle != null) ...[
-              const SizedBox(height: 2),
-              Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
-            ],
-            const SizedBox(height: 12),
-            child,
+            Expanded(child: filters),
+            const SizedBox(width: 12),
+            exportBtn,
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -442,4 +482,43 @@ List<Map<String, dynamic>> _mapRows(dynamic input) {
       .whereType<Map>()
       .map((row) => Map<String, dynamic>.from(row))
       .toList(growable: false);
+}
+
+String _buildAnalyticsExport({
+  required String period,
+  required String audience,
+  required Map<String, dynamic> kpis,
+  required List<Map<String, dynamic>> volume,
+  required List<Map<String, dynamic>> ratings,
+  required List<Map<String, dynamic>> experience,
+  required List<Map<String, dynamic>> destinations,
+}) {
+  final lines = <String>[
+    'Ryvo Admin Analytics Export',
+    'Period: $period',
+    'Audience: $audience',
+    '',
+    'KPIs',
+    'Active Users,${kpis['activeUsers'] ?? 0}',
+    'Completed Trips,${kpis['completedTrips'] ?? 0}',
+    'Avg Rating,${kpis['avgRating'] ?? 0}',
+    'Cancel Rate,${kpis['cancelRate'] ?? 0}%',
+    '',
+    'Ride Volume',
+    'Label,Trips',
+    ...volume.map((row) => '${row['label'] ?? '—'},${row['trips'] ?? 0}'),
+    '',
+    'Ratings Distribution',
+    'Stars,Count',
+    ...ratings.map((row) => '${row['stars'] ?? '?'},${row['count'] ?? 0}'),
+    '',
+    'Experience',
+    'Metric,Score',
+    ...experience.map((row) => '${row['metric'] ?? 'Metric'},${row['score'] ?? 0}'),
+    '',
+    'Top Destinations',
+    'Name,Count',
+    ...destinations.map((row) => '${row['name'] ?? '—'},${row['count'] ?? 0}'),
+  ];
+  return lines.join('\n');
 }
