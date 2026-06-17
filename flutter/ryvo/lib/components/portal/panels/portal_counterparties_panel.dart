@@ -18,18 +18,27 @@ class PortalCounterpartiesPanel extends ConsumerStatefulWidget {
   ConsumerState<PortalCounterpartiesPanel> createState() => _PortalCounterpartiesPanelState();
 }
 
-class _PortalCounterpartiesPanelState extends ConsumerState<PortalCounterpartiesPanel> {
+class _PortalCounterpartiesPanelState extends ConsumerState<PortalCounterpartiesPanel>
+    with SingleTickerProviderStateMixin {
   bool _loading = true;
   String? _error;
   List<Map<String, dynamic>> _rows = const [];
   String? _selectedId;
   bool _profileLoading = false;
   Map<String, dynamic>? _profile;
+  TabController? _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -92,6 +101,7 @@ class _PortalCounterpartiesPanelState extends ConsumerState<PortalCounterparties
         _profileLoading = false;
       });
     }
+    _tabController?.animateTo(1);
   }
 
   @override
@@ -100,79 +110,90 @@ class _PortalCounterpartiesPanelState extends ConsumerState<PortalCounterparties
     return AdminListStack(
       children: [
         Text(label, style: Theme.of(context).textTheme.titleSmall),
-        if (_loading)
-          portalLoading()
-        else if (_error != null)
-          portalError(_error!)
-        else
-          AdminTableCard(
-            child: AdminTable(
-              child: DataTable(
-                columns: [
-                  DataColumn(label: Text(T.portal('portal.counterparties.columns.user'))),
-                  DataColumn(label: Text(T.portal('portal.counterparties.columns.trips'))),
-                  DataColumn(label: Text(T.portal('portal.counterparties.columns.status'))),
-                  const DataColumn(label: SizedBox.shrink()),
-                ],
-                rows: _rows.map((row) {
-                  final id = portalStr(row['id']);
-                  final trips = row['trips'] as int? ?? 0;
-                  final status = portalStr(row['latest_status'], 'unknown');
-                  return DataRow(
-                    cells: [
-                      DataCell(Text(id)),
-                      DataCell(Text('$trips')),
-                      DataCell(StatusBadge(label: status, variant: portalTripStatus(status))),
-                      DataCell(
-                        ShadButton.outline(
-                          size: ShadButtonSize.sm,
-                          onPressed: widget.area == PortalArea.client ? () => _openProfile(id) : null,
-                          child: Text(T.portal('portal.counterparties.viewProfile')),
+        AdminMobileColumnTabs(
+          tabController: _tabController,
+          scrollableOnMobile: true,
+          tabHeight: 360,
+          tabs: [
+            T.portal('portal.counterparties.tabs.list'),
+            T.portal('portal.counterparties.tabs.profile'),
+          ],
+          children: [
+            _loading
+                ? portalLoading()
+                : _error != null
+                    ? portalError(_error!)
+                    : AdminTableCard(
+                        child: AdminTable(
+                          child: DataTable(
+                            columns: [
+                              DataColumn(label: Text(T.portal('portal.counterparties.columns.user'))),
+                              DataColumn(label: Text(T.portal('portal.counterparties.columns.trips'))),
+                              DataColumn(label: Text(T.portal('portal.counterparties.columns.status'))),
+                              const DataColumn(label: SizedBox.shrink()),
+                            ],
+                            rows: _rows.map((row) {
+                              final id = portalStr(row['id']);
+                              final trips = row['trips'] as int? ?? 0;
+                              final status = portalStr(row['latest_status'], 'unknown');
+                              return DataRow(
+                                cells: [
+                                  DataCell(Text(id)),
+                                  DataCell(Text('$trips')),
+                                  DataCell(StatusBadge(label: status, variant: portalTripStatus(status))),
+                                  DataCell(
+                                    ShadButton.outline(
+                                      size: ShadButtonSize.sm,
+                                      onPressed: widget.area == PortalArea.client ? () => _openProfile(id) : null,
+                                      child: Text(T.portal('portal.counterparties.viewProfile')),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(growable: false),
+                          ),
                         ),
+                        isEmpty: _rows.isEmpty,
+                        empty: portalEmpty(T.nav('common.noData')),
                       ),
-                    ],
-                  );
-                }).toList(growable: false),
-              ),
-            ),
-            isEmpty: _rows.isEmpty,
-            empty: portalEmpty(T.nav('common.noData')),
-          ),
-        if (_selectedId != null)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: _profileLoading
-                  ? portalLoading()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(LucideIcons.userRound),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                portalStr(_profile?['profile']?['full_name'], _selectedId!),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(fontWeight: FontWeight.w700),
-                              ),
+            _selectedId == null
+                ? portalEmpty(T.portal('portal.counterparties.selectProfile'))
+                : Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: _profileLoading
+                          ? portalLoading()
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(LucideIcons.userRound),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        portalStr(_profile?['profile']?['full_name'], _selectedId!),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(fontWeight: FontWeight.w700),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => setState(() => _selectedId = null),
+                                      icon: const Icon(LucideIcons.x),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  '${T.portal('portal.counterparties.trips')}: ${portalStr(_profile?['profile']?['trip_count'], '0')}',
+                                ),
+                              ],
                             ),
-                            IconButton(
-                              onPressed: () => setState(() => _selectedId = null),
-                              icon: const Icon(LucideIcons.x),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          '${T.portal('portal.counterparties.trips')}: ${portalStr(_profile?['profile']?['trip_count'], '0')}',
-                        ),
-                      ],
                     ),
-            ),
-          ),
+                  ),
+          ],
+        ),
       ],
     );
   }

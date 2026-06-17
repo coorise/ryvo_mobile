@@ -20,6 +20,7 @@ import 'package:ryvo/app/client/hr/feedbacks_page.dart';
 import 'package:ryvo/app/client/main/drivers_page.dart';
 import 'package:ryvo/app/client/main/live_map_page.dart';
 import 'package:ryvo/app/client/main/rides_page.dart';
+import 'package:ryvo/app/client/drive/ride_detail_page.dart';
 import 'package:ryvo/app/client/settings/configurations_page.dart';
 import 'package:ryvo/app/client/settings/profile_page.dart';
 import 'package:ryvo/app/driver/audits/activity_logs_page.dart';
@@ -39,6 +40,7 @@ import 'package:ryvo/app/driver/main/kyc/cars/new_car_page.dart';
 import 'package:ryvo/app/driver/main/kyc_page.dart';
 import 'package:ryvo/app/driver/main/live_map_page.dart';
 import 'package:ryvo/app/driver/main/rides_page.dart';
+import 'package:ryvo/app/driver/drive/ride_detail_page.dart';
 import 'package:ryvo/app/driver/settings/configurations_page.dart';
 import 'package:ryvo/app/driver/settings/profile_page.dart';
 import 'package:ryvo/app/landing/landing_page.dart';
@@ -200,6 +202,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => const NoTransitionPage(child: DriverRidesPage()),
               ),
               GoRoute(
+                path: 'drive/:tripId',
+                pageBuilder: (context, state) => NoTransitionPage(
+                  child: DriverRideDetailPage(tripId: state.pathParameters['tripId']!),
+                ),
+              ),
+              GoRoute(
                 path: 'main/clients',
                 pageBuilder: (context, state) => const NoTransitionPage(child: DriverClientsPage()),
               ),
@@ -213,11 +221,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'cars/:carId',
-                    pageBuilder: (context, state) => const NoTransitionPage(child: DriverCarDetailPage()),
+                    pageBuilder: (context, state) => NoTransitionPage(
+                      child: DriverCarDetailPage(carId: state.pathParameters['carId']!),
+                    ),
                     routes: [
                       GoRoute(
                         path: 'edit',
-                        pageBuilder: (context, state) => const NoTransitionPage(child: DriverEditCarPage()),
+                        pageBuilder: (context, state) => NoTransitionPage(
+                          child: DriverEditCarPage(carId: state.pathParameters['carId']!),
+                        ),
                       ),
                     ],
                   ),
@@ -290,6 +302,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'main/rides',
                 pageBuilder: (context, state) => const NoTransitionPage(child: ClientRidesPage()),
+              ),
+              GoRoute(
+                path: 'drive/:tripId',
+                pageBuilder: (context, state) => NoTransitionPage(
+                  child: ClientRideDetailPage(tripId: state.pathParameters['tripId']!),
+                ),
               ),
               GoRoute(
                 path: 'main/drivers',

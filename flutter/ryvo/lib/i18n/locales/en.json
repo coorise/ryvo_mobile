@@ -114,13 +114,37 @@
         "liveMapDesc": "Search destinations and request a driver near you."
       }
     },
+    "bottomNav": {
+      "home": "Home",
+      "orders": "Orders",
+      "analytics": "Analytics",
+      "support": "Support",
+      "profile": "Profile"
+    },
     "rides": {
       "subtitle": "Trip history and your active ride.",
       "activeTrip": "Active trip",
       "trackOnMap": "Track on map",
+      "viewDetails": "View trip details",
+      "detailTitle": "Trip details",
+      "detailUnavailable": "Could not load trip details.",
+      "stepsTitle": "Trip progress",
+      "steps": {
+        "driver_en_route": "Driver en route",
+        "driver_arrived": "Driver arrived",
+        "rider_picked_up": "Rider picked up",
+        "in_progress": "In progress",
+        "completed": "Completed"
+      },
       "historyUnavailable": "Trip history is loading from the platform.",
       "activeUnavailable": "Could not load active trip.",
       "emptyHint": "No trips yet — start from the live map.",
+      "mapUnavailable": "Route map is not available for this trip.",
+      "tabs": {
+        "map": "Map",
+        "progress": "Progress",
+        "actions": "Actions"
+      },
       "columns": {
         "when": "When",
         "route": "Route",
@@ -191,6 +215,10 @@
     "securityLogs": {
       "unavailable": "Security logs are not available yet.",
       "revokeDevice": "Revoke",
+      "tabs": {
+        "events": "Auth events",
+        "devices": "Devices"
+      },
       "columns": {
         "event": "Event",
         "severity": "Severity",
@@ -263,17 +291,96 @@
     },
     "kyc": {
       "subtitle": "Verification documents for your driver account.",
-      "unavailable": "Could not load KYC status.",
-      "addCar": "Add car",
+      "unavailable": "Could not load KYC status. Contact support if this persists.",
+      "statusLabel": "Verification status",
+      "uploadHint": "Upload or update documents below. Each update returns to pending until staff approves.",
+      "viewDocument": "View",
+      "uploaded": "Document uploaded — pending staff review.",
+      "update": "Update",
       "tabs": {
         "you": "You",
         "cars": "Your cars"
+      },
+      "carsHint": "Register each car you drive. Staff must approve the vehicle and its documents.",
+      "addCar": "Add car",
+      "editCar": "Edit car",
+      "noCars": "No cars registered yet.",
+      "carSaved": "Car saved — pending review.",
+      "carDeleted": "Car removed.",
+      "registration": "Registration (official reference)",
+      "insurance": "Insurance certificate",
+      "banner": "Main banner image",
+      "galleryImages": "Gallery images",
+      "videoOptional": "Short video (optional)",
+      "addGalleryImages": "Add gallery images",
+      "uploadBanner": "Upload banner",
+      "uploadVideo": "Upload video",
+      "viewBanner": "View banner",
+      "mediaSection": "Photos & video",
+      "mediaHint": "Upload the main banner, at least 2 gallery images, and optionally a short video (max 30 seconds, 30 MB).",
+      "documentsSection": "Car documents",
+      "documentsHint": "Upload official registration and insurance. You may add optional supporting documents.",
+      "otherDocsTitle": "Other documents (optional)",
+      "otherDocPlaceholder": "e.g. Technical inspection",
+      "otherDocDefault": "Other document",
+      "addOtherDoc": "Add document",
+      "docMissing": "Missing",
+      "noDocs": "No documents uploaded yet.",
+      "carProfileSection": "Know your car — profile",
+      "carProfileHint": "All fields below are required for staff to review your vehicle.",
+      "profileChecklist": "Completion checklist",
+      "checkProfileFields": "Brand, name, plate, speed, age, tyres, carbon, energy",
+      "checkGallery": "At least {{count}} gallery images",
+      "saveProfile": "Save car profile",
+      "submitForReview": "Submit for staff review",
+      "requiredBrandName": "Brand and name are required.",
+      "requiredPlate": "Plate number is required.",
+      "requiredSpeed": "Max speed is required.",
+      "requiredAge": "Age of car is required.",
+      "requiredTyres": "Tyres type is required.",
+      "requiredCarbon": "Carbon print is required.",
+      "profileIncomplete": "Complete all required fields, banner, gallery (min. 2), registration, and insurance before submitting.",
+      "selectTyres": "Select tyres type",
+      "addCarSubtitle": "Complete the full car profile on this page — details, photos, video, and documents.",
+      "editCarSubtitle": "Update your car profile, media, and documents for staff review.",
+      "viewCar": "View car",
+      "viewCarSubtitle": "Read-only car profile submitted for staff review.",
+      "backToCars": "Back to your cars",
+      "videoTooLarge": "Video must be 30 MB or smaller.",
+      "tyres": {
+        "summer": "Summer",
+        "winter": "Winter",
+        "all_season": "All-season",
+        "performance": "Performance",
+        "other": "Other"
+      },
+      "energy": {
+        "fuel": "Fuel",
+        "electric": "Electric",
+        "hybrid": "Hybrid"
+      },
+      "fields": {
+        "brand": "Brand",
+        "name": "Name / model label",
+        "plate": "Plate number",
+        "energy": "Energy type",
+        "tyres": "Tyres type",
+        "speed": "Max speed (km/h)",
+        "age": "Age of car (years)",
+        "carbon": "Carbon print — CO₂ emission (g/km)"
       }
     },
     "liveMap": {
+      "driverSubtitle": "Go online, accept requests, and navigate to passengers.",
+      "clientSubtitle": "Search, request a ride, and track your driver.",
       "unavailable": "Live map is not available right now.",
       "searchPlaceholder": "Search a place…",
       "search": "Search",
+      "goOnline": "Go online",
+      "goOffline": "Go offline",
+      "zonePrice": "Zone price multiplier",
+      "setPickup": "Set as pickup",
+      "setDropoff": "Set as dropoff",
       "noIncoming": "No incoming requests.",
       "noDriving": "No active trip.",
       "incomingTitle": "Incoming request",
@@ -291,15 +398,67 @@
         "requesting": "Requesting"
       }
     },
+    "ride": {
+      "bookTitle": "Request a ride",
+      "bookHint": "Set pickup and dropoff, then request a driver.",
+      "pickupPlaceholder": "Pickup address",
+      "dropoffPlaceholder": "Dropoff address",
+      "setPickup": "Use demo pickup",
+      "setDropoff": "Use demo dropoff",
+      "pickupSet": "Pickup selected",
+      "dropoffSet": "Dropoff selected",
+      "estimate": "Estimate fare",
+      "estimated": "Estimated fare: ${{amount}}",
+      "requestRide": "Request ride",
+      "requestSent": "Ride requested — waiting for a driver.",
+      "incomingTitle": "Incoming ride request",
+      "incomingDesc": "Accept to proceed to client payment, or reject to skip.",
+      "accept": "Accept",
+      "reject": "Reject",
+      "accepted": "Ride accepted — client can pay.",
+      "rejected": "Ride declined.",
+      "requestingTitle": "Awaiting driver",
+      "requestingStatus": "Status: {{status}}",
+      "payNow": "Proceed to payment",
+      "paymentStarted": "Payment initiated.",
+      "cancelRequest": "Cancel request",
+      "cancelled": "Request cancelled.",
+      "activeTitle": "Active trip",
+      "tripStatus": "Trip status: {{status}}",
+      "awaitingTrip": "Payment confirmed — trip starting soon.",
+      "advance": "Mark as {{status}}",
+      "noActiveWorkflow": "No active workflow for this tab.",
+      "actionFailed": "Something went wrong. Try again."
+    },
     "counterparties": {
       "unavailable": "Could not load ride partners.",
       "viewProfile": "View profile",
+      "selectProfile": "Select a driver from the list to view their profile.",
       "trips": "Trips",
+      "tabs": {
+        "list": "List",
+        "profile": "Profile"
+      },
       "columns": {
         "user": "User",
         "trips": "Trips together",
         "status": "Status"
       }
     }
+  },
+  "drivers": {
+    "documents": "Documents",
+    "docLicense": "Driver's license",
+    "docInsurance": "Vehicle insurance",
+    "docRegistration": "Vehicle registration",
+    "docBackground": "Background check",
+    "docPhoto": "Profile photo",
+    "docNationalId": "National ID",
+    "docPassport": "Passport",
+    "docSelfie": "Selfie with ID",
+    "docBank": "Bank statement",
+    "viewDocument": "View",
+    "viewDocumentHint": "Preview from secure storage.",
+    "viewDocumentError": "Could not load this file. It may not have been uploaded yet."
   }
 }

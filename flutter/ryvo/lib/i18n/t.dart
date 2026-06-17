@@ -84,6 +84,61 @@ class T {
     'portal.home.client.liveMapTitle': 'Find a ride',
     'portal.home.client.liveMapDesc': 'Search destinations and request a driver near you.',
     'portal.rides.subtitle': 'Trip history and your active ride.',
+    'portal.rides.viewDetails': 'View trip details',
+    'portal.rides.detailTitle': 'Trip details',
+    'portal.rides.detailUnavailable': 'Could not load trip details.',
+    'portal.rides.stepsTitle': 'Trip progress',
+    'portal.rides.tabs.map': 'Map',
+    'portal.rides.tabs.progress': 'Progress',
+    'portal.rides.tabs.actions': 'Actions',
+    'portal.rides.mapUnavailable': 'Route map is not available for this trip.',
+    'portal.rides.steps.driver_en_route': 'Driver en route',
+    'portal.rides.steps.driver_arrived': 'Driver arrived',
+    'portal.rides.steps.rider_picked_up': 'Rider picked up',
+    'portal.rides.steps.in_progress': 'In progress',
+    'portal.rides.steps.completed': 'Completed',
+    'portal.bottomNav.home': 'Home',
+    'portal.bottomNav.orders': 'Orders',
+    'portal.bottomNav.analytics': 'Analytics',
+    'portal.bottomNav.support': 'Support',
+    'portal.bottomNav.profile': 'Profile',
+    'portal.liveMap.driverSubtitle': 'Go online, accept requests, and navigate to passengers.',
+    'portal.liveMap.clientSubtitle': 'Search, request a ride, and track your driver.',
+    'portal.liveMap.goOnline': 'Go online',
+    'portal.liveMap.goOffline': 'Go offline',
+    'portal.liveMap.zonePrice': 'Zone price multiplier',
+    'portal.liveMap.setPickup': 'Set as pickup',
+    'portal.liveMap.setDropoff': 'Set as dropoff',
+    'portal.ride.bookTitle': 'Request a ride',
+    'portal.ride.bookHint': 'Set pickup and dropoff, then request a driver.',
+    'portal.ride.pickupPlaceholder': 'Pickup address',
+    'portal.ride.dropoffPlaceholder': 'Dropoff address',
+    'portal.ride.setPickup': 'Use demo pickup',
+    'portal.ride.setDropoff': 'Use demo dropoff',
+    'portal.ride.pickupSet': 'Pickup selected',
+    'portal.ride.dropoffSet': 'Dropoff selected',
+    'portal.ride.estimate': 'Estimate fare',
+    'portal.ride.estimated': 'Estimated fare: \${{amount}}',
+    'portal.ride.requestRide': 'Request ride',
+    'portal.ride.requestSent': 'Ride requested — waiting for a driver.',
+    'portal.ride.incomingTitle': 'Incoming ride request',
+    'portal.ride.incomingDesc': 'Accept to proceed to client payment, or reject to skip.',
+    'portal.ride.accept': 'Accept',
+    'portal.ride.reject': 'Reject',
+    'portal.ride.accepted': 'Ride accepted — client can pay.',
+    'portal.ride.rejected': 'Ride declined.',
+    'portal.ride.requestingTitle': 'Awaiting driver',
+    'portal.ride.requestingStatus': 'Status: {{status}}',
+    'portal.ride.payNow': 'Proceed to payment',
+    'portal.ride.paymentStarted': 'Payment initiated.',
+    'portal.ride.cancelRequest': 'Cancel request',
+    'portal.ride.cancelled': 'Request cancelled.',
+    'portal.ride.activeTitle': 'Active trip',
+    'portal.ride.tripStatus': 'Trip status: {{status}}',
+    'portal.ride.awaitingTrip': 'Payment confirmed — trip starting soon.',
+    'portal.ride.advance': 'Mark as {{status}}',
+    'portal.ride.noActiveWorkflow': 'No active workflow for this tab.',
+    'portal.ride.actionFailed': 'Something went wrong. Try again.',
     'portal.clients.subtitle': 'Clients you have driven.',
     'portal.drivers.subtitle': 'Drivers you have ridden with.',
     'common.signOut': 'Sign out',
@@ -95,9 +150,14 @@ class T {
     return _nav[key] ?? key;
   }
 
-  static String portal(String key) {
+  static String portal(String key, [Map<String, String>? params]) {
     final translated = AppI18n.instance.tr(key);
-    if (translated != key) return translated;
-    return _portal[key] ?? key;
+    var text = translated != key ? translated : (_portal[key] ?? key);
+    if (params != null) {
+      for (final entry in params.entries) {
+        text = text.replaceAll('{{${entry.key}}}', entry.value);
+      }
+    }
+    return text;
   }
 }

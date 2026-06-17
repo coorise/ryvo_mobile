@@ -96,6 +96,7 @@ class SiteHeader extends ConsumerWidget {
     ref.watch(localeProvider);
     final isDark = themeMode == ThemeMode.dark;
     final wide = MediaQuery.sizeOf(context).width >= 1024;
+    final compact = !wide;
 
     return Material(
       color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
@@ -105,14 +106,22 @@ class SiteHeader extends ConsumerWidget {
           SizedBox(
             height: ViewInsets.toolbarHeight,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
               child: Row(
                 children: [
-                  BrandLogo(href: Routes.landing),
-                  const Spacer(),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: BrandLogo(href: Routes.landing),
+                    ),
+                  ),
                   if (wide) _DesktopNav(onNavTap: onNavTap),
                   if (wide) const LanguageSwitcher(compact: true),
                   IconButton(
+                    visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
+                    padding: compact ? EdgeInsets.zero : null,
+                    constraints: compact ? const BoxConstraints(minWidth: 40, minHeight: 40) : null,
                     tooltip: isDark ? 'Light mode' : 'Dark mode',
                     onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
                     icon: Icon(isDark ? LucideIcons.sun : LucideIcons.moon, size: 18),
@@ -141,6 +150,9 @@ class SiteHeader extends ConsumerWidget {
                     ),
                   if (!wide)
                     IconButton(
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                       tooltip: T.nav('nav.menu'),
                       onPressed: () => _openMobileMenu(context, ref),
                       icon: const Icon(LucideIcons.menu, size: 18),

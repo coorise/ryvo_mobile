@@ -46,7 +46,7 @@ class Env {
 
   static const releaseBranch = String.fromEnvironment(
     'RELEASE_BRANCH',
-    defaultValue: 'dev',
+    defaultValue: 'dev_admin',
   );
 
   static const appSlug = String.fromEnvironment(

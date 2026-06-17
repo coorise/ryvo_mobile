@@ -18,10 +18,20 @@ export MOBILE_ROOT
 : "${GITHUB_REPO:=coorise/ryvo_mobile}"
 
 resolve_release_branch() {
-  case "${RYVO_DEPLOY_TARGET}" in
-    prod) echo "main" ;;
-    dev) echo "dev" ;;
-    *) echo "dev" ;;
+  local app="${RYVO_APP:-client}"
+  case "${RYVO_DEPLOY_TARGET}-${app}" in
+    dev-admin) echo "dev_admin" ;;
+    prod-admin) echo "main_admin" ;;
+    dev-client) echo "dev_client" ;;
+    prod-client) echo "main_client" ;;
+    local-admin | local-client) echo "dev" ;;
+    *)
+      if [[ "${RYVO_DEPLOY_TARGET}" == "prod" ]]; then
+        echo "main_${app}"
+      else
+        echo "dev_${app}"
+      fi
+      ;;
   esac
 }
 

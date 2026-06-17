@@ -130,8 +130,8 @@ class _PortalChatSupportPanelState extends ConsumerState<PortalChatSupportPanel>
       ],
       tabHeight: 420,
       children: [
-        Card(
-          child: ListView.builder(
+        _supportTabShell(
+          ListView.builder(
             padding: const EdgeInsets.all(8),
             itemCount: _tickets.length,
             itemBuilder: (context, index) {
@@ -150,8 +150,8 @@ class _PortalChatSupportPanelState extends ConsumerState<PortalChatSupportPanel>
             },
           ),
         ),
-        Card(
-          child: Padding(
+        _supportTabShell(
+          Padding(
             padding: const EdgeInsets.all(12),
             child: _selectedTicketId == null
                 ? portalEmpty(T.portal('portal.support.selectTicket'))
@@ -204,8 +204,8 @@ class _PortalChatSupportPanelState extends ConsumerState<PortalChatSupportPanel>
                   ),
           ),
         ),
-        Card(
-          child: Padding(
+        _supportTabShell(
+          SingleChildScrollView(
             padding: const EdgeInsets.all(12),
             child: Column(
               children: [
@@ -231,6 +231,14 @@ class _PortalChatSupportPanelState extends ConsumerState<PortalChatSupportPanel>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _supportTabShell(Widget child) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
+      child: SizedBox.expand(child: child),
     );
   }
 }

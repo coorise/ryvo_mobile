@@ -76,8 +76,8 @@ class Abac {
 
   static String portalDashboardPathForUser(SessionUser? user) {
     if (user == null) return Routes.authLogin;
-    if (hasStrictRole(user, const ['driver'])) return Routes.driverHome;
-    if (hasStrictRole(user, const ['client'])) return Routes.clientHome;
+    if (hasStrictRole(user, const ['driver'])) return Routes.driverLiveMap;
+    if (hasStrictRole(user, const ['client'])) return Routes.clientLiveMap;
     return Routes.authLogin;
   }
 

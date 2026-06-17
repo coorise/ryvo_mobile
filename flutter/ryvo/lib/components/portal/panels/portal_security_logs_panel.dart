@@ -65,7 +65,13 @@ class _PortalSecurityLogsPanelState extends ConsumerState<PortalSecurityLogsPane
     if (_loading) return portalLoading();
     if (_error != null) return portalError(_error!);
 
-    return AdminListStack(
+    return AdminMobileColumnTabs(
+      scrollableOnMobile: true,
+      tabHeight: 420,
+      tabs: [
+        T.portal('portal.securityLogs.tabs.events'),
+        T.portal('portal.securityLogs.tabs.devices'),
+      ],
       children: [
         AdminTableCard(
           child: AdminTable(

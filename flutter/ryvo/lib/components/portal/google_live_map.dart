@@ -11,6 +11,8 @@ class GoogleLiveMap extends StatefulWidget {
     this.selectedDriverId,
     this.onSelectDriver,
     this.placeTarget,
+    this.pickup,
+    this.dropoff,
     this.height = 280,
   });
 
@@ -19,6 +21,8 @@ class GoogleLiveMap extends StatefulWidget {
   final String? selectedDriverId;
   final ValueChanged<Map<String, dynamic>>? onSelectDriver;
   final LatLng? placeTarget;
+  final LatLng? pickup;
+  final LatLng? dropoff;
   final double height;
 
   @override
@@ -34,11 +38,11 @@ class _GoogleLiveMapState extends State<GoogleLiveMap> {
     if (widget.selectedDriverId != oldWidget.selectedDriverId &&
         widget.selectedDriverId != null) {
       _focusSelectedDriver();
-    } else if (widget.placeTarget != oldWidget.placeTarget &&
-        widget.placeTarget != null) {
-      _controller?.animateCamera(
-        CameraUpdate.newLatLngZoom(widget.placeTarget!, 14),
-      );
+    } else if (widget.placeTarget != oldWidget.placeTarget && widget.placeTarget != null) {
+      _controller?.animateCamera(CameraUpdate.newLatLngZoom(widget.placeTarget!, 14));
+    } else if ((widget.pickup != oldWidget.pickup || widget.dropoff != oldWidget.dropoff) &&
+        (widget.pickup != null || widget.dropoff != null)) {
+      _fitRoute();
     }
   }
 
@@ -52,6 +56,39 @@ class _GoogleLiveMapState extends State<GoogleLiveMap> {
       _controller?.animateCamera(CameraUpdate.newLatLngZoom(pos, 15));
       return;
     }
+  }
+
+  void _fitRoute() {
+    final points = <LatLng>[];
+    if (widget.pickup != null) points.add(widget.pickup!);
+    if (widget.dropoff != null) points.add(widget.dropoff!);
+    if (points.isEmpty) return;
+    if (points.length == 1) {
+      _controller?.animateCamera(CameraUpdate.newLatLngZoom(points.first, 14));
+      return;
+    }
+    var bounds = LatLngBounds(southwest: points.first, northeast: points.first);
+    for (final point in points.skip(1)) {
+      bounds = LatLngBounds(
+        southwest: LatLng(
+          bounds.southwest.latitude < point.latitude
+              ? bounds.southwest.latitude
+              : point.latitude,
+          bounds.southwest.longitude < point.longitude
+              ? bounds.southwest.longitude
+              : point.longitude,
+        ),
+        northeast: LatLng(
+          bounds.northeast.latitude > point.latitude
+              ? bounds.northeast.latitude
+              : point.latitude,
+          bounds.northeast.longitude > point.longitude
+              ? bounds.northeast.longitude
+              : point.longitude,
+        ),
+      );
+    }
+    _controller?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 64));
   }
 
   Set<Marker> _buildMarkers() {
@@ -68,9 +105,7 @@ class _GoogleLiveMapState extends State<GoogleLiveMap> {
           position: pos,
           infoWindow: InfoWindow(title: driverName(driver)),
           icon: BitmapDescriptor.defaultMarkerWithHue(
-            onTrip
-                ? BitmapDescriptor.hueAzure
-                : BitmapDescriptor.hueGreen,
+            onTrip ? BitmapDescriptor.hueAzure : BitmapDescriptor.hueGreen,
           ),
           onTap: () => widget.onSelectDriver?.call(driver),
         ),
@@ -83,14 +118,50 @@ class _GoogleLiveMapState extends State<GoogleLiveMap> {
         Marker(
           markerId: const MarkerId('__place_target__'),
           position: place,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange,
-          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+        ),
+      );
+    }
+
+    final pickup = widget.pickup;
+    if (pickup != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('__pickup__'),
+          position: pickup,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          infoWindow: const InfoWindow(title: 'Pickup'),
+        ),
+      );
+    }
+
+    final dropoff = widget.dropoff;
+    if (dropoff != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('__dropoff__'),
+          position: dropoff,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          infoWindow: const InfoWindow(title: 'Dropoff'),
         ),
       );
     }
 
     return markers;
+  }
+
+  Set<Polyline> _buildPolylines() {
+    final pickup = widget.pickup;
+    final dropoff = widget.dropoff;
+    if (pickup == null || dropoff == null) return const {};
+    return {
+      Polyline(
+        polylineId: const PolylineId('__route_preview__'),
+        points: [pickup, dropoff],
+        color: Colors.blue,
+        width: 4,
+      ),
+    };
   }
 
   @override
@@ -128,6 +199,7 @@ class _GoogleLiveMapState extends State<GoogleLiveMap> {
             zoom: 12,
           ),
           markers: _buildMarkers(),
+          polylines: _buildPolylines(),
           myLocationButtonEnabled: false,
           zoomControlsEnabled: false,
           mapToolbarEnabled: false,
@@ -135,6 +207,7 @@ class _GoogleLiveMapState extends State<GoogleLiveMap> {
           onMapCreated: (controller) {
             _controller = controller;
             _focusSelectedDriver();
+            _fitRoute();
           },
         ),
       ),

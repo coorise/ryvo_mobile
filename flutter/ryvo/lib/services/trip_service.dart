@@ -8,19 +8,23 @@ class TripService extends BaseService {
   }
 
   Future<Map<String, dynamic>> estimate(String? token, Map<String, dynamic> body) {
-    return post<Map<String, dynamic>>('/v1/trip/estimate', body, token: token);
+    return post<Map<String, dynamic>>('/v1/estimate', body, token: token);
   }
 
   Future<Map<String, dynamic>> requestRide(String? token, Map<String, dynamic> body) {
     return post<Map<String, dynamic>>('/v1/trip/request', body, token: token);
   }
 
+  Future<Map<String, dynamic>> cancelRequest(String? token, String requestId) {
+    return post<Map<String, dynamic>>('/v1/request/$requestId/cancel', {}, token: token);
+  }
+
   Future<Map<String, dynamic>> acceptAssignment(String? token, String assignmentId) {
-    return post<Map<String, dynamic>>('/v1/trip/assignments/$assignmentId/accept', {}, token: token);
+    return post<Map<String, dynamic>>('/v1/assignment/$assignmentId/accept', {}, token: token);
   }
 
   Future<Map<String, dynamic>> rejectAssignment(String? token, String assignmentId) {
-    return post<Map<String, dynamic>>('/v1/trip/assignments/$assignmentId/reject', {}, token: token);
+    return post<Map<String, dynamic>>('/v1/assignment/$assignmentId/reject', {}, token: token);
   }
 
   Future<Map<String, dynamic>> transitionTrip(String? token, String tripId, String status) {

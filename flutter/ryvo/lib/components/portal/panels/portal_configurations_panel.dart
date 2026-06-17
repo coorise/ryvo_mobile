@@ -85,7 +85,7 @@ class _PortalConfigurationsPanelState extends ConsumerState<PortalConfigurations
         ? Routes.driverNotifications
         : Routes.clientNotifications;
 
-    return PortalTabScaffold(
+    return PortalTabScaffoldSimple(
       tabs: [
         T.portal('portal.settings.tabs.general'),
         T.portal('portal.settings.tabs.payment'),

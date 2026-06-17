@@ -76,6 +76,8 @@ class AdminStatGrid extends StatelessWidget {
   }
 }
 
+const _portalMobileBreakpoint = 760.0;
+
 /// Collapsible overview stats — collapsed by default on mobile list pages.
 class AdminCollapsibleOverview extends StatefulWidget {
   const AdminCollapsibleOverview({
@@ -84,12 +86,14 @@ class AdminCollapsibleOverview extends StatefulWidget {
     this.summary,
     required this.child,
     this.initiallyExpanded = false,
+    this.wideBreakpoint = _portalMobileBreakpoint,
   });
 
   final String title;
   final String? summary;
   final Widget child;
   final bool initiallyExpanded;
+  final double wideBreakpoint;
 
   @override
   State<AdminCollapsibleOverview> createState() =>
@@ -101,6 +105,17 @@ class _AdminCollapsibleOverviewState extends State<AdminCollapsibleOverview> {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= widget.wideBreakpoint) {
+          return widget.child;
+        }
+        return _buildCollapsible(context);
+      },
+    );
+  }
+
+  Widget _buildCollapsible(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0.5,
@@ -166,8 +181,10 @@ class AdminMobileColumnTabs extends StatelessWidget {
     required this.tabs,
     required this.children,
     this.tabHeight = 360,
-    this.wideBreakpoint = 760,
+    this.wideBreakpoint = _portalMobileBreakpoint,
     this.spacing = 12,
+    this.tabController,
+    this.scrollableOnMobile = false,
   });
 
   final List<String> tabs;
@@ -175,6 +192,19 @@ class AdminMobileColumnTabs extends StatelessWidget {
   final double tabHeight;
   final double wideBreakpoint;
   final double spacing;
+  final TabController? tabController;
+  final bool scrollableOnMobile;
+
+  List<Widget> get _mobileChildren {
+    if (!scrollableOnMobile) return children;
+    return [
+      for (final child in children)
+        SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: child,
+        ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -193,21 +223,31 @@ class AdminMobileColumnTabs extends StatelessWidget {
             ],
           );
         }
+        final mobileChildren = _mobileChildren;
+        final tabBar = TabBar(
+          controller: tabController,
+          isScrollable: tabs.length > 2,
+          tabAlignment: tabs.length > 2 ? TabAlignment.start : TabAlignment.fill,
+          tabs: [for (final tab in tabs) Tab(text: tab)],
+        );
+        final tabView = SizedBox(
+          height: tabHeight,
+          child: TabBarView(
+            controller: tabController,
+            children: mobileChildren,
+          ),
+        );
+        if (tabController != null) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [tabBar, tabView],
+          );
+        }
         return DefaultTabController(
           length: tabs.length,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TabBar(
-                isScrollable: tabs.length > 2,
-                tabAlignment: tabs.length > 2 ? TabAlignment.start : TabAlignment.fill,
-                tabs: [for (final tab in tabs) Tab(text: tab)],
-              ),
-              SizedBox(
-                height: tabHeight,
-                child: TabBarView(children: children),
-              ),
-            ],
+            children: [tabBar, tabView],
           ),
         );
       },

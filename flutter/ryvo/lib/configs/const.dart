@@ -47,6 +47,7 @@ class Routes {
   static const driverAnalytics = '/driver/audits/analytics';
   static const driverProfile = '/driver/settings/profile';
   static const driverConfigurations = '/driver/settings/configurations';
+  static String driverRideDetail(String tripId) => '/driver/drive/$tripId';
 
   static const clientHome = '/client';
   static const clientLiveMap = '/client/main/live-map';
@@ -62,6 +63,7 @@ class Routes {
   static const clientAnalytics = '/client/audits/analytics';
   static const clientProfile = '/client/settings/profile';
   static const clientConfigurations = '/client/settings/configurations';
+  static String clientRideDetail(String tripId) => '/client/drive/$tripId';
 
   static const legalTos = '/legal/tos';
   static const legalPrivacy = '/legal/privacy';

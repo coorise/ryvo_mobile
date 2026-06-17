@@ -64,26 +64,30 @@ class _PortalFeedbacksPanelState extends ConsumerState<PortalFeedbacksPanel> {
 
     return AdminListStack(
       children: [
-        AdminStatGrid(
-          children: [
-            AdminStatCard(
-              label: T.portal('portal.feedbacks.stats.average'),
-              value: average,
-              icon: LucideIcons.star,
-              tone: AdminStatTone.warning,
-            ),
-            AdminStatCard(
-              label: T.portal('portal.feedbacks.stats.total'),
-              value: total,
-              icon: LucideIcons.messageCircle,
-            ),
-            AdminStatCard(
-              label: T.portal('portal.feedbacks.stats.positiveRate'),
-              value: '$positive%',
-              icon: LucideIcons.thumbsUp,
-              tone: AdminStatTone.success,
-            ),
-          ],
+        AdminCollapsibleOverview(
+          title: T.portal('portal.nav.overview'),
+          summary: '$average avg · $total ${T.portal('portal.feedbacks.stats.total').toLowerCase()} · $positive%',
+          child: AdminStatGrid(
+            children: [
+              AdminStatCard(
+                label: T.portal('portal.feedbacks.stats.average'),
+                value: average,
+                icon: LucideIcons.star,
+                tone: AdminStatTone.warning,
+              ),
+              AdminStatCard(
+                label: T.portal('portal.feedbacks.stats.total'),
+                value: total,
+                icon: LucideIcons.messageCircle,
+              ),
+              AdminStatCard(
+                label: T.portal('portal.feedbacks.stats.positiveRate'),
+                value: '$positive%',
+                icon: LucideIcons.thumbsUp,
+                tone: AdminStatTone.success,
+              ),
+            ],
+          ),
         ),
         AdminTableCard(
           child: AdminTable(

@@ -56,12 +56,10 @@ class _PortalProfilePanelState extends ConsumerState<PortalProfilePanel> {
       if (widget.area == PortalArea.driver) {
         final vehiclesRes = await vehiclesService.listMine(auth.accessToken);
         final vehicles = portalMapList(vehiclesRes, 'vehicles');
-        final active = vehicles.firstWhere(
-          (v) => v['is_active'] == true,
-          orElse: () => const <String, dynamic>{},
-        );
+        final profileData = profile['profile'];
+        final activeId = profileData is Map ? portalStr(profileData['active_vehicle_id'], '') : '';
         _vehicles = vehicles;
-        _activeVehicleId = portalStr(active['id'], '');
+        _activeVehicleId = activeId;
       }
       if (!mounted) return;
       setState(() => _loading = false);
@@ -151,8 +149,8 @@ class _PortalProfilePanelState extends ConsumerState<PortalProfilePanel> {
                   return DataRow(
                     selected: isActive,
                     cells: [
-                      DataCell(Text('${portalStr(vehicle['brand'])} ${portalStr(vehicle['model'])}'.trim())),
-                      DataCell(Text(portalStr(vehicle['plate_number']))),
+                      DataCell(Text('${portalStr(vehicle['brand'])} ${portalStr(vehicle['name'])}'.trim())),
+                      DataCell(Text(portalStr(vehicle['plate']))),
                       DataCell(
                         ShadButton.outline(
                           onPressed: isActive ? null : () => _setActiveVehicle(id),

@@ -1,7 +1,7 @@
 name: ryvo_admin
 description: Ryvo-Line admin mobile app — mirrors client/web/ryvo_admin architecture.
 publish_to: "none"
-version: 1.0.2+6
+version: 1.0.2+7
 
 environment:
   sdk: ^3.11.5

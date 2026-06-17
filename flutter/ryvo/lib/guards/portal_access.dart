@@ -1,3 +1,4 @@
+import 'package:ryvo/configs/const.dart';
 import 'package:ryvo/configs/portal_nav.dart';
 import 'package:ryvo/guards/abac.dart';
 import 'package:ryvo/types/interfaces/schemas/session_user.dart';
@@ -45,14 +46,20 @@ bool canAccessPortalPath(SessionUser? user, PortalArea area, String pathname) {
 }
 
 String firstAllowedPortalPath(SessionUser? user, PortalArea area) {
+  final liveMap = area == PortalArea.driver ? Routes.driverLiveMap : Routes.clientLiveMap;
   final config = portalNavForArea(area);
+  for (final group in config.groups) {
+    for (final item in group.items) {
+      if (item.href == liveMap && canSeePortalNavItem(user, item)) return liveMap;
+    }
+  }
   if (canSeePortalNavItem(user, config.overview)) return config.homeHref;
   for (final group in config.groups) {
     for (final item in group.items) {
       if (canSeePortalNavItem(user, item)) return item.href;
     }
   }
-  return config.homeHref;
+  return liveMap;
 }
 
 bool isNavActive(String path, String href) {

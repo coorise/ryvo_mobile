@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import 'package:ryvo/components/portal/panels/portal_ride_detail_panel.dart';
 import 'package:ryvo/components/portal/panels/portal_panel_utils.dart';
 import 'package:ryvo/components/portal/portal_list_ui.dart';
 import 'package:ryvo/components/ryvo/ryvo_button.dart';
@@ -27,6 +28,7 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
   String? _activeError;
   String? _historyError;
   Map<String, dynamic>? _activeTrip;
+  Map<String, dynamic>? _activeRequest;
   List<Map<String, dynamic>> _trips = const [];
 
   @override
@@ -45,6 +47,7 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
     });
 
     Map<String, dynamic>? activeTrip;
+    Map<String, dynamic>? activeRequest;
     List<Map<String, dynamic>> trips = const [];
     String? activeError;
     String? historyError;
@@ -54,6 +57,10 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
       final trip = activeRes['trip'];
       if (trip is Map) {
         activeTrip = Map<String, dynamic>.from(trip);
+      }
+      final request = activeRes['request'];
+      if (request is Map) {
+        activeRequest = Map<String, dynamic>.from(request);
       }
     } catch (_) {
       activeError = T.portal('portal.rides.activeUnavailable');
@@ -69,6 +76,7 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
     if (!mounted) return;
     setState(() {
       _activeTrip = activeTrip;
+      _activeRequest = activeRequest;
       _trips = trips;
       _activeError = activeError;
       _historyError = historyError;
@@ -80,7 +88,14 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
   Widget build(BuildContext context) {
     final liveMapHref = widget.area == PortalArea.driver ? Routes.driverLiveMap : Routes.clientLiveMap;
     final activeTripId = portalStr(_activeTrip?['id'], '');
+    final activeRequestId = portalStr(_activeRequest?['id'], '');
     final hasActiveTrip = activeTripId.isNotEmpty;
+    final hasActiveRequest = activeRequestId.isNotEmpty && !hasActiveTrip;
+    final hasActive = hasActiveTrip || hasActiveRequest;
+    final activeSource = hasActiveTrip ? _activeTrip : _activeRequest;
+    final activeStatus = portalStr(activeSource?['status'], 'active');
+    final activePickup = portalStr(activeSource?['pickup_address']);
+    final activeDropoff = portalStr(activeSource?['dropoff_address']);
 
     return AdminListStack(
       children: [
@@ -99,7 +114,7 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
           ],
         ),
         if (_activeError != null) portalError(_activeError!),
-        if (hasActiveTrip)
+        if (hasActive)
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
@@ -110,7 +125,7 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  T.portal('portal.rides.activeTrip'),
+                  hasActiveTrip ? T.portal('portal.rides.activeTrip') : T.portal('portal.ride.requestingTitle'),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 8),
@@ -120,17 +135,37 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     StatusBadge(
-                      label: portalStr(_activeTrip?['status'], 'active'),
-                      variant: portalTripStatus(portalStr(_activeTrip?['status'], 'active')),
+                      label: activeStatus,
+                      variant: portalTripStatus(activeStatus),
                     ),
-                    Text(activeTripId, style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      hasActiveTrip ? activeTripId : activeRequestId,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
+                if (hasActiveTrip || hasActiveRequest) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    '$activePickup -> $activeDropoff',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
                 const SizedBox(height: 12),
                 RyvoButton(
-                  onPressed: () => context.go(liveMapHref),
+                  onPressed: () {
+                    if (hasActiveTrip) {
+                      context.go(rideDetailPath(widget.area, activeTripId));
+                    } else {
+                      context.go(liveMapHref);
+                    }
+                  },
                   size: ShadButtonSize.sm,
-                  child: Text(T.portal('portal.rides.trackOnMap')),
+                  child: Text(
+                    hasActiveTrip
+                        ? T.portal('portal.rides.viewDetails')
+                        : T.portal('portal.rides.trackOnMap'),
+                  ),
                 ),
               ],
             ),
@@ -150,7 +185,7 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
           isEmpty: !_loading && _historyError == null && _trips.isEmpty,
           empty: portalEmpty(T.nav('common.noData')),
         ),
-        if (!_loading && _historyError == null && _trips.isEmpty && !hasActiveTrip)
+        if (!_loading && _historyError == null && _trips.isEmpty && !hasActive)
           Column(
             children: [
               const Icon(LucideIcons.car, size: 32, color: Colors.grey),
@@ -188,6 +223,11 @@ class _PortalRidesPanelState extends ConsumerState<PortalRidesPanel> {
       final status = portalStr(trip['status'], 'unknown');
       final createdAt = portalStr(trip['created_at'], '');
       return DataRow(
+        onSelectChanged: (_) {
+          final id = portalStr(trip['id']);
+          if (id.isEmpty) return;
+          context.go(rideDetailPath(widget.area, id));
+        },
         cells: [
           DataCell(Text(formatLastSeen(createdAt))),
           DataCell(

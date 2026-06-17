@@ -77,26 +77,31 @@ class _PortalPaymentsPanelState extends ConsumerState<PortalPaymentsPanel> {
 
     return AdminListStack(
       children: [
-        AdminStatGrid(
-          children: [
-            AdminStatCard(
-              label: T.portal('portal.payments.stats.total'),
-              value: '${filtered.length}',
-              icon: LucideIcons.banknote,
-            ),
-            AdminStatCard(
-              label: T.portal('portal.payments.stats.volume'),
-              value: formatMoney(volume),
-              icon: LucideIcons.circleCheck,
-              tone: AdminStatTone.success,
-            ),
-            AdminStatCard(
-              label: T.portal('portal.payments.stats.pending'),
-              value: '$pendingCount',
-              icon: LucideIcons.clock3,
-              tone: AdminStatTone.warning,
-            ),
-          ],
+        AdminCollapsibleOverview(
+          title: T.portal('portal.nav.overview'),
+          summary:
+              '${filtered.length} ${T.portal('portal.payments.stats.total').toLowerCase()} · ${formatMoney(volume)} · $pendingCount ${T.portal('portal.payments.stats.pending').toLowerCase()}',
+          child: AdminStatGrid(
+            children: [
+              AdminStatCard(
+                label: T.portal('portal.payments.stats.total'),
+                value: '${filtered.length}',
+                icon: LucideIcons.banknote,
+              ),
+              AdminStatCard(
+                label: T.portal('portal.payments.stats.volume'),
+                value: formatMoney(volume),
+                icon: LucideIcons.circleCheck,
+                tone: AdminStatTone.success,
+              ),
+              AdminStatCard(
+                label: T.portal('portal.payments.stats.pending'),
+                value: '$pendingCount',
+                icon: LucideIcons.clock3,
+                tone: AdminStatTone.warning,
+              ),
+            ],
+          ),
         ),
         AdminSearchToolbar(
           value: _search,

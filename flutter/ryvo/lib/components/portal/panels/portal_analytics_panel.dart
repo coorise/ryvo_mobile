@@ -75,32 +75,37 @@ class _PortalAnalyticsPanelState extends ConsumerState<PortalAnalyticsPanel> {
 
     return AdminListStack(
       children: [
-        AdminStatGrid(
-          children: [
-            AdminStatCard(
-              label: T.portal('portal.analytics.totalTrips'),
-              value: '${_trips.length}',
-              icon: LucideIcons.barChart3,
-            ),
-            AdminStatCard(
-              label: T.portal('portal.analytics.completed'),
-              value: '$completed',
-              icon: LucideIcons.circleCheck,
-              tone: AdminStatTone.success,
-            ),
-            AdminStatCard(
-              label: T.portal('portal.analytics.cancelled'),
-              value: '$cancelled',
-              icon: LucideIcons.circleX,
-              tone: AdminStatTone.danger,
-            ),
-            AdminStatCard(
-              label: T.portal('portal.analytics.revenue'),
-              value: formatMoney(revenue),
-              icon: LucideIcons.wallet,
-              tone: AdminStatTone.info,
-            ),
-          ],
+        AdminCollapsibleOverview(
+          title: T.portal('portal.nav.overview'),
+          summary:
+              '${_trips.length} ${T.portal('portal.analytics.totalTrips').toLowerCase()} · $completed ${T.portal('portal.analytics.completed').toLowerCase()} · ${formatMoney(revenue)}',
+          child: AdminStatGrid(
+            children: [
+              AdminStatCard(
+                label: T.portal('portal.analytics.totalTrips'),
+                value: '${_trips.length}',
+                icon: LucideIcons.barChart3,
+              ),
+              AdminStatCard(
+                label: T.portal('portal.analytics.completed'),
+                value: '$completed',
+                icon: LucideIcons.circleCheck,
+                tone: AdminStatTone.success,
+              ),
+              AdminStatCard(
+                label: T.portal('portal.analytics.cancelled'),
+                value: '$cancelled',
+                icon: LucideIcons.circleX,
+                tone: AdminStatTone.danger,
+              ),
+              AdminStatCard(
+                label: T.portal('portal.analytics.revenue'),
+                value: formatMoney(revenue),
+                icon: LucideIcons.wallet,
+                tone: AdminStatTone.info,
+              ),
+            ],
+          ),
         ),
         AdminTableCard(
           child: AdminTable(

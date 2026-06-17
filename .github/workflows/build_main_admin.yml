@@ -1,0 +1,62 @@
+name: Build admin production APK
+
+on:
+  push:
+    branches: [main_admin]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  RYVO_DEPLOY_TARGET: prod
+  RYVO_UPDATE_CHANNEL: remote
+  RYVO_APP: admin
+  SUPABASE_URL: ${{ secrets.PROD_SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.PROD_SUPABASE_ANON_KEY }}
+  FUNCTIONS_URL: ${{ secrets.PROD_SUPABASE_FUNCTIONS_URL }}
+  GOOGLE_MAPS_API_KEY: ${{ secrets.PROD_GOOGLE_MAPS_API_KEY }}
+
+jobs:
+  build-admin-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android licenses
+        run: yes | flutter doctor --android-licenses
+
+      - name: Build admin production release APK
+        id: build
+        env:
+          KEYSTORE_B64: ${{ secrets.ADMIN_PROD_ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ADMIN_PROD_ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ADMIN_PROD_ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ADMIN_PROD_ANDROID_KEY_ALIAS }}
+        run: chmod +x scripts/ci-build-release.sh && ./scripts/ci-build-release.sh admin prod
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.build.outputs.tag }}
+          name: Ryvo Admin (prod) ${{ steps.build.outputs.tag }}
+          body: |
+            **Version:** `${{ steps.build.outputs.raw }}`
+            **Tag:** `${{ steps.build.outputs.tag }}`
+            **Release branch:** `main_admin`
+
+            Automated admin production build. Merge `dev` → `main_admin` to publish OTA updates.
+          files: .github_releases/mobile/android/${{ steps.build.outputs.apk_name }}

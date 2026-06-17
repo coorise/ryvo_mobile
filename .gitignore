@@ -22,6 +22,9 @@
 **/*.jks
 **/key.properties
 **/GoogleService-Info.plist
+**/android/.gradle/
+**/android/local.properties
+**/android/.cxx/
 
 # Coverage / symbols
 **/coverage/

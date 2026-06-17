@@ -6,11 +6,11 @@ Remote: [github.com/coorise/ryvo_mobile](https://github.com/coorise/ryvo_mobile)
 
 ## Deploy targets & package IDs
 
-| Target | Flag | Admin package | Client package | GitHub releases |
-|--------|------|---------------|----------------|-----------------|
+| Target | Flag | Admin package | Client package | Release branch |
+|--------|------|---------------|----------------|----------------|
 | **Local** | `--local` (default) | `com.ryvo.admin.local` | `com.ryvo.client.local` | Off |
-| **Dev** | `--dev` | `com.ryvo.admin.dev` | `com.ryvo.client.dev` | Branch `dev` |
-| **Prod** | `--prod` | `com.ryvo.admin` | `com.ryvo.client` | Branch `main` |
+| **Dev** | `--dev` | `com.ryvo.admin.dev` | `com.ryvo.client.dev` | `dev_admin` / `dev_client` |
+| **Prod** | `--prod` | `com.ryvo.admin` | `com.ryvo.client` | `main_admin` / `main_client` |
 
 Package IDs are applied with [change_app_package_name](https://pub.dev/packages/change_app_package_name). **Launcher icons** get a corner badge automatically:
 
@@ -50,30 +50,30 @@ Configured in repo **Settings → Secrets**:
 
 | Secret | Used on |
 |--------|---------|
-| `DEV_SUPABASE_URL` | `dev` branch builds |
-| `DEV_SUPABASE_ANON_KEY` | `dev` |
-| `DEV_SUPABASE_FUNCTIONS_URL` | `dev` |
-| `DEV_GOOGLE_MAPS_API_KEY` | `dev` |
-| `PROD_SUPABASE_URL` | `main` branch builds |
-| `PROD_SUPABASE_ANON_KEY` | `main` |
-| `PROD_SUPABASE_FUNCTIONS_URL` | `main` |
-| `PROD_GOOGLE_MAPS_API_KEY` | `main` |
-| `ADMIN_DEV_ANDROID_KEYSTORE_BASE64` | admin `dev` branch |
-| `ADMIN_DEV_ANDROID_KEYSTORE_PASSWORD` | admin `dev` |
-| `ADMIN_DEV_ANDROID_KEY_PASSWORD` | admin `dev` |
-| `ADMIN_DEV_ANDROID_KEY_ALIAS` | admin `dev` |
-| `ADMIN_PROD_ANDROID_KEYSTORE_BASE64` | admin `main` branch |
-| `ADMIN_PROD_ANDROID_KEYSTORE_PASSWORD` | admin `main` |
-| `ADMIN_PROD_ANDROID_KEY_PASSWORD` | admin `main` |
-| `ADMIN_PROD_ANDROID_KEY_ALIAS` | admin `main` |
-| `DEV_ANDROID_KEYSTORE_BASE64` | client `dev` branch (when enabled) |
-| `DEV_ANDROID_KEYSTORE_PASSWORD` | client `dev` |
-| `DEV_ANDROID_KEY_PASSWORD` | client `dev` |
-| `DEV_ANDROID_KEY_ALIAS` | client `dev` |
-| `PROD_ANDROID_KEYSTORE_BASE64` | client `main` branch (when enabled) |
-| `PROD_ANDROID_KEYSTORE_PASSWORD` | client `main` |
-| `PROD_ANDROID_KEY_PASSWORD` | client `main` |
-| `PROD_ANDROID_KEY_ALIAS` | client `main` |
+| `DEV_SUPABASE_URL` | `dev_admin`, `dev_client` builds |
+| `DEV_SUPABASE_ANON_KEY` | dev release branches |
+| `DEV_SUPABASE_FUNCTIONS_URL` | dev release branches |
+| `DEV_GOOGLE_MAPS_API_KEY` | dev release branches |
+| `PROD_SUPABASE_URL` | `main_admin`, `main_client` builds |
+| `PROD_SUPABASE_ANON_KEY` | prod release branches |
+| `PROD_SUPABASE_FUNCTIONS_URL` | prod release branches |
+| `PROD_GOOGLE_MAPS_API_KEY` | prod release branches |
+| `ADMIN_DEV_ANDROID_KEYSTORE_BASE64` | `dev_admin` workflow |
+| `ADMIN_DEV_ANDROID_KEYSTORE_PASSWORD` | `dev_admin` |
+| `ADMIN_DEV_ANDROID_KEY_PASSWORD` | `dev_admin` |
+| `ADMIN_DEV_ANDROID_KEY_ALIAS` | `dev_admin` |
+| `ADMIN_PROD_ANDROID_KEYSTORE_BASE64` | `main_admin` workflow |
+| `ADMIN_PROD_ANDROID_KEYSTORE_PASSWORD` | `main_admin` |
+| `ADMIN_PROD_ANDROID_KEY_PASSWORD` | `main_admin` |
+| `ADMIN_PROD_ANDROID_KEY_ALIAS` | `main_admin` |
+| `DEV_ANDROID_KEYSTORE_BASE64` | `dev_client` workflow |
+| `DEV_ANDROID_KEYSTORE_PASSWORD` | `dev_client` |
+| `DEV_ANDROID_KEY_PASSWORD` | `dev_client` |
+| `DEV_ANDROID_KEY_ALIAS` | `dev_client` |
+| `PROD_ANDROID_KEYSTORE_BASE64` | `main_client` workflow |
+| `PROD_ANDROID_KEYSTORE_PASSWORD` | `main_client` |
+| `PROD_ANDROID_KEY_PASSWORD` | `main_client` |
+| `PROD_ANDROID_KEY_ALIAS` | `main_client` |
 
 **Optional (not set yet):** iOS signing (`IOS_*`), Play Store upload. `GITHUB_TOKEN` is provided by Actions for releases.
 
@@ -106,10 +106,22 @@ base64 -w 0 flutter/ryvo_admin/android/.keys/dev/upload-keystore.jks
 
 `./run_build.sh release --dev` reads `android/.keys/dev/`; CI decodes the same layout from secrets before building.
 
-Release tags: `ryvo_admin-dev-v1.0.0+1` (dev), `ryvo_admin-v1.0.0+1` (prod).
+Release tags:
+
+| App | Dev tag | Prod tag |
+|-----|---------|----------|
+| admin | `ryvo_admin-dev-v1.0.0-1` | `ryvo_admin-v1.0.0-1` |
+| client | `ryvo-dev-v1.0.0-1` | `ryvo-v1.0.0-1` |
 
 ## Branches
 
-- `dev` — dev APKs + `*.dev` package IDs
-- `main` — production APKs + production package IDs
->>>>>>> dev
+| Branch | Purpose | CI workflow |
+|--------|---------|-------------|
+| `dev` | Integration branch — commit and push here; **does not** trigger releases | — |
+| `main` | Stable snapshot for cloning; **does not** trigger releases | — |
+| `dev_admin` | Admin dev OTA releases | `build_dev_admin.yml` |
+| `main_admin` | Admin production OTA releases | `build_main_admin.yml` |
+| `dev_client` | Client/driver dev OTA releases | `build_dev.yml` |
+| `main_client` | Client/driver production OTA releases | `build_main.yml` |
+
+**Release flow:** merge `dev` → `dev_admin` / `dev_client` / `main_admin` / `main_client` when you want to publish an OTA build for that app and environment.

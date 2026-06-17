@@ -360,9 +360,17 @@ final portalPathPrefixes = <PortalArea, List<({String prefix, PortalNavItem item
   PortalArea.driver: [
     for (final item in [driverNav.overview, ...driverNav.groups.expand((g) => g.items)])
       (prefix: item.href, item: item),
+    (
+      prefix: '/driver/drive',
+      item: driverNav.groups.first.items.firstWhere((i) => i.href == Routes.driverRides),
+    ),
   ],
   PortalArea.client: [
     for (final item in [clientNav.overview, ...clientNav.groups.expand((g) => g.items)])
       (prefix: item.href, item: item),
+    (
+      prefix: '/client/drive',
+      item: clientNav.groups.first.items.firstWhere((i) => i.href == Routes.clientRides),
+    ),
   ],
 };

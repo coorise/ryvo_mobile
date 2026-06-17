@@ -44,6 +44,15 @@ if [[ -z "${SUPABASE_ANON_KEY:-}" ]]; then
   exit 1
 fi
 
+case "$APP_SLUG" in
+  ryvo_admin) export RYVO_APP=admin ;;
+  ryvo) export RYVO_APP=client ;;
+  *)
+    echo "ERROR: unknown APP_SLUG=$APP_SLUG" >&2
+    exit 1
+    ;;
+esac
+
 RELEASE_BRANCH="$(resolve_release_branch)"
 OUT="$APP_DIR/dart_defines.json"
 

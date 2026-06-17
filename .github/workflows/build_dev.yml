@@ -1,8 +1,8 @@
-name: Build dev mobile apps
+name: Build client dev APK
 
 on:
   push:
-    branches: [dev]
+    branches: [dev_client]
   workflow_dispatch:
 
 permissions:
@@ -11,13 +11,14 @@ permissions:
 env:
   RYVO_DEPLOY_TARGET: dev
   RYVO_UPDATE_CHANNEL: remote
+  RYVO_APP: client
   SUPABASE_URL: ${{ secrets.DEV_SUPABASE_URL }}
   SUPABASE_ANON_KEY: ${{ secrets.DEV_SUPABASE_ANON_KEY }}
   FUNCTIONS_URL: ${{ secrets.DEV_SUPABASE_FUNCTIONS_URL }}
   GOOGLE_MAPS_API_KEY: ${{ secrets.DEV_GOOGLE_MAPS_API_KEY }}
 
 jobs:
-  build-admin-android:
+  build-client-android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,59 +39,25 @@ jobs:
       - name: Accept Android licenses
         run: yes | flutter doctor --android-licenses
 
-      - name: Apply package id (dev)
-        run: chmod +x scripts/*.sh flutter/ryvo_admin/*.sh && ./scripts/set-package-id.sh admin dev
-
-      - name: Setup Android signing (admin dev)
+      - name: Build client dev release APK
+        id: build
         env:
-          KEYSTORE_B64: ${{ secrets.ADMIN_DEV_ANDROID_KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.ADMIN_DEV_ANDROID_KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.ADMIN_DEV_ANDROID_KEY_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ADMIN_DEV_ANDROID_KEY_ALIAS }}
-          REQUIRE_ANDROID_SIGNING: "1"
-        run: ./scripts/setup-android-signing.sh dev admin
-
-      - name: Build admin release APK
-        working-directory: flutter/ryvo_admin
-        run: |
-          chmod +x run_build.sh scripts/*.sh
-          ./run_build.sh release --dev
-
-      - name: Stage release artifact
-        run: |
-          mkdir -p .github_releases/mobile/android
-          cp flutter/ryvo_admin/build/app/outputs/flutter-apk/app-release.apk \
-            .github_releases/mobile/android/ryvo_admin-dev.apk
-
-      - name: Read version
-        id: version
-        working-directory: flutter/ryvo_admin
-        run: |
-          RAW=$(grep '^version:' pubspec.yaml | awk '{print $2}')
-          V=$(echo "$RAW" | tr '+' '-')
-          echo "raw=$RAW" >> "$GITHUB_OUTPUT"
-          echo "tag=ryvo_admin-dev-v${V}" >> "$GITHUB_OUTPUT"
+          KEYSTORE_B64: ${{ secrets.DEV_ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.DEV_ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.DEV_ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.DEV_ANDROID_KEY_ALIAS }}
+        run: chmod +x scripts/ci-build-release.sh && ./scripts/ci-build-release.sh client dev
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: Ryvo Admin (dev) ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.build.outputs.tag }}
+          name: Ryvo Client (dev) ${{ steps.build.outputs.tag }}
           body: |
-            **Version:** `${{ steps.version.outputs.raw }}`
-            **Tag:** `${{ steps.version.outputs.tag }}`
+            **Version:** `${{ steps.build.outputs.raw }}`
+            **Tag:** `${{ steps.build.outputs.tag }}`
+            **Release branch:** `dev_client`
 
-            First dev release with stable Android signing and OTA support.
-
-            **v1.0.2:** About dialog with manual update check; login placeholders no longer prefilled.
-
-            Automated dev build from branch `dev`.
-          files: .github_releases/mobile/android/ryvo_admin-dev.apk
+            Automated client/driver dev build. Merge `dev` → `dev_client` to publish OTA updates.
+          files: .github_releases/mobile/android/${{ steps.build.outputs.apk_name }}
           prerelease: true
-
-  build-client-android:
-    runs-on: ubuntu-latest
-    if: false # Enable when flutter/ryvo client app is ready for CI.
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "client app CI placeholder"

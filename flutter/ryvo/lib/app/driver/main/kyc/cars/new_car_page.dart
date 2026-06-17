@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ryvo/components/portal/portal_page_shell.dart';
-import 'package:ryvo/components/portal/panels/portal_kyc_panel.dart';
+import 'package:ryvo/components/portal/vehicle/portal_vehicle_form.dart';
 
 class DriverNewCarPage extends ConsumerWidget {
   const DriverNewCarPage({super.key});
@@ -10,10 +10,10 @@ class DriverNewCarPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PortalPageShell(
-      titleKey: 'portal.nav.driverKyc',
-      subtitleKey: 'portal.kyc.subtitle',
+      titleKey: 'portal.kyc.addCar',
+      subtitleKey: 'portal.kyc.addCarSubtitle',
       expand: true,
-      child: const PortalKycPanel(),
+      child: const PortalVehicleForm(mode: 'create'),
     );
   }
 }
