@@ -24,6 +24,7 @@ void main() {
       ),
     );
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.textContaining('Ryvo-Line'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
   });

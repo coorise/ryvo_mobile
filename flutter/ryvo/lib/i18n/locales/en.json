@@ -1,0 +1,305 @@
+{
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "cities": "Cities",
+      "drivers": "Drivers",
+      "safety": "Safety"
+    },
+    "goToDashboard": "Go to dashboard",
+    "goHome": "Go home"
+  },
+  "common": {
+    "appName": "Ryvo-Line",
+    "tagline": "Ride smarter",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "register": "Register",
+    "loading": "Loading…",
+    "noData": "No data yet",
+    "cancel": "Cancel",
+    "about": "About"
+  },
+  "nav": {
+    "menu": "Navigation menu"
+  },
+  "auth": {
+    "back": "Back",
+    "login": {
+      "title": "Sign in",
+      "description": "Driver and client accounts only.",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "Your password",
+      "signingIn": "Signing in…",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "No account? Create one",
+      "staffBlocked": "Staff accounts must use the admin app.",
+      "noPortalAccess": "This account does not have portal access."
+    },
+    "register": {
+      "title": "Create account",
+      "description": "Join Ryvo-Line as a rider or driver.",
+      "fullName": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "rider": "Rider",
+      "driver": "Driver",
+      "submit": "Create account",
+      "creating": "Creating…",
+      "haveAccount": "Already have an account? Sign in"
+    },
+    "verifyEmail": {
+      "title": "Verify your email",
+      "description": "We sent a confirmation link. Open it to unlock booking and driving.",
+      "sentTo": "Sent to",
+      "backToSignIn": "Back to sign in"
+    }
+  },
+  "portal": {
+    "shell": {
+      "driver": "Driver",
+      "client": "Client",
+      "toggleTheme": "Toggle theme",
+      "userMenu": "User menu",
+      "signOutTitle": "Sign out?",
+      "signOutDescription": "You will be signed out and need to sign in again to access your dashboard."
+    },
+    "nav": {
+      "overview": "Overview",
+      "liveMap": "Live map",
+      "rides": "Rides",
+      "clients": "Clients",
+      "drivers": "Drivers",
+      "driverKyc": "Driver KYC",
+      "notifications": "Notifications",
+      "chat": "Chat",
+      "messages": "Messages",
+      "chatSupport": "Chat support",
+      "feedbacks": "Feedbacks",
+      "payments": "Payments",
+      "securityLogs": "Security logs",
+      "activityLogs": "Activity logs",
+      "analytics": "Analytics",
+      "profile": "Profile",
+      "configurations": "Configurations",
+      "groups": {
+        "main": "Main",
+        "communication": "Communication",
+        "hr": "Human resources",
+        "finances": "Finances",
+        "audits": "Audits",
+        "settings": "Settings"
+      }
+    },
+    "settings": {
+      "tabs": {
+        "general": "General",
+        "payment": "Payment",
+        "notifications": "Notifications"
+      }
+    },
+    "home": {
+      "open": "Open",
+      "driver": {
+        "subtitle": "Your driver workspace — go online, manage trips, and track earnings.",
+        "liveMapTitle": "Live map",
+        "liveMapDesc": "Set your presence, zone pricing, and incoming requests."
+      },
+      "client": {
+        "subtitle": "Book rides, track trips, and manage your account.",
+        "liveMapTitle": "Find a ride",
+        "liveMapDesc": "Search destinations and request a driver near you."
+      }
+    },
+    "rides": {
+      "subtitle": "Trip history and your active ride.",
+      "activeTrip": "Active trip",
+      "trackOnMap": "Track on map",
+      "historyUnavailable": "Trip history is loading from the platform.",
+      "activeUnavailable": "Could not load active trip.",
+      "emptyHint": "No trips yet — start from the live map.",
+      "columns": {
+        "when": "When",
+        "route": "Route",
+        "status": "Status"
+      }
+    },
+    "clients": {
+      "subtitle": "Clients you have driven."
+    },
+    "drivers": {
+      "subtitle": "Drivers you have ridden with."
+    },
+    "payments": {
+      "subtitle": "Payments linked to your account.",
+      "unavailable": "Payment history is not available yet.",
+      "searchPlaceholder": "Search payments…",
+      "stats": {
+        "total": "Transactions",
+        "volume": "Succeeded volume",
+        "pending": "Pending"
+      },
+      "filters": {
+        "all": "All",
+        "succeeded": "Succeeded",
+        "pending": "Pending",
+        "failed": "Failed"
+      },
+      "columns": {
+        "date": "Date",
+        "amount": "Amount",
+        "status": "Status",
+        "id": "ID"
+      }
+    },
+    "analytics": {
+      "unavailable": "Analytics are not available yet.",
+      "totalTrips": "Total trips",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "revenue": "Revenue",
+      "inProgress": "In progress",
+      "columns": {
+        "period": "Period",
+        "trips": "Trips",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "notifications": {
+      "unavailable": "Notifications are not available yet.",
+      "read": "Read",
+      "unread": "Unread",
+      "markRead": "Mark read",
+      "columns": {
+        "title": "Title",
+        "status": "Status",
+        "date": "Date"
+      }
+    },
+    "activityLogs": {
+      "unavailable": "Activity logs are not available yet.",
+      "columns": {
+        "action": "Action",
+        "resource": "Resource",
+        "date": "Date"
+      }
+    },
+    "securityLogs": {
+      "unavailable": "Security logs are not available yet.",
+      "revokeDevice": "Revoke",
+      "columns": {
+        "event": "Event",
+        "severity": "Severity",
+        "date": "Date",
+        "device": "Device",
+        "lastSeen": "Last seen"
+      }
+    },
+    "feedbacks": {
+      "unavailable": "Feedbacks are not available yet.",
+      "stats": {
+        "average": "Average rating",
+        "total": "Total ratings",
+        "positiveRate": "Positive rate"
+      },
+      "columns": {
+        "period": "Period",
+        "average": "Average",
+        "count": "Count"
+      }
+    },
+    "chat": {
+      "empty": "Chat is available during an active trip.",
+      "unavailable": "Chat is not available right now.",
+      "noMessages": "No messages yet.",
+      "inputPlaceholder": "Type a message…"
+    },
+    "support": {
+      "unavailable": "Support chat is not available yet.",
+      "myTickets": "My tickets",
+      "thread": "Conversation",
+      "newTicket": "New ticket",
+      "selectTicket": "Select a ticket to view messages.",
+      "replyPlaceholder": "Write a reply…",
+      "send": "Send",
+      "subjectPlaceholder": "Subject",
+      "messagePlaceholder": "Describe your issue…",
+      "create": "Create ticket",
+      "created": "Ticket created"
+    },
+    "messages": {
+      "unavailable": "Messages are not available yet.",
+      "columns": {
+        "subject": "Subject",
+        "status": "Status",
+        "sent": "Sent"
+      }
+    },
+    "profile": {
+      "unavailable": "Profile could not be loaded.",
+      "fullName": "Full name",
+      "phone": "Phone",
+      "save": "Save profile",
+      "saved": "Profile saved",
+      "saveFailed": "Could not save profile",
+      "vehicle": "Vehicle",
+      "plate": "Plate",
+      "activeVehicle": "Active",
+      "setActiveVehicle": "Set active"
+    },
+    "configurations": {
+      "unavailable": "Settings could not be loaded.",
+      "saved": "Settings saved",
+      "saveFailed": "Could not save settings",
+      "saveLocale": "Save language",
+      "paymentHint": "Manage payout methods and billing.",
+      "notificationsHint": "Choose how you receive alerts.",
+      "openPayments": "Open payments",
+      "openNotifications": "Open notifications"
+    },
+    "kyc": {
+      "subtitle": "Verification documents for your driver account.",
+      "unavailable": "Could not load KYC status.",
+      "addCar": "Add car",
+      "tabs": {
+        "you": "You",
+        "cars": "Your cars"
+      }
+    },
+    "liveMap": {
+      "unavailable": "Live map is not available right now.",
+      "searchPlaceholder": "Search a place…",
+      "search": "Search",
+      "noIncoming": "No incoming requests.",
+      "noDriving": "No active trip.",
+      "incomingTitle": "Incoming request",
+      "tripActive": "Trip in progress",
+      "route": "Route",
+      "columns": {
+        "driver": "Driver",
+        "status": "Status"
+      },
+      "tabs": {
+        "live": "Live",
+        "incoming": "Incoming",
+        "driving": "Driving",
+        "goTo": "Go to",
+        "requesting": "Requesting"
+      }
+    },
+    "counterparties": {
+      "unavailable": "Could not load ride partners.",
+      "viewProfile": "View profile",
+      "trips": "Trips",
+      "columns": {
+        "user": "User",
+        "trips": "Trips together",
+        "status": "Status"
+      }
+    }
+  }
+}

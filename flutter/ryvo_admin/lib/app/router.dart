@@ -92,10 +92,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             : Routes.adminHome;
       }
 
-      if (hasSession && canDashboard && path == Routes.landing) {
-        return AdminAccess.firstAllowedAdminPath(user);
-      }
-
       if (canDashboard && path == Routes.authLogin) {
         return AdminAccess.firstAllowedAdminPath(user);
       }

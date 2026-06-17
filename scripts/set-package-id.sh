@@ -30,7 +30,9 @@ echo ""
 
 cd "$DIR"
 flutter pub get
-dart run change_app_package_name:main "$PKG"
+if ! grep -q 'applicationId = appId' "$DIR/android/app/build.gradle.kts" 2>/dev/null; then
+  dart run change_app_package_name:main "$PKG"
+fi
 "$ROOT/scripts/apply-app-icons.sh" "$APP" "$TARGET"
 
 echo "Done: $PKG"

@@ -4,7 +4,6 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -13,6 +12,26 @@ val deployTarget = (
         ?: System.getenv("RYVO_DEPLOY_TARGET")
         ?: "local"
     ).lowercase()
+
+fun readMapsKeyFromDartDefines(): String {
+    val file = rootProject.file("../dart_defines.json")
+    if (!file.exists()) return ""
+    val match = Regex(""""GOOGLE_MAPS_API_KEY"\s*:\s*"([^"]*)"""")
+        .find(file.readText())
+    return match?.groupValues?.get(1)?.trim().orEmpty()
+}
+
+val googleMapsApiKey = (
+    project.findProperty("googleMapsApiKey") as String?
+        ?: System.getenv("GOOGLE_MAPS_API_KEY")
+        ?: readMapsKeyFromDartDefines()
+    ).trim()
+
+val appId = when (deployTarget) {
+    "prod" -> "com.ryvo.client"
+    "dev" -> "com.ryvo.client.dev"
+    else -> "com.ryvo.client.local"
+}
 
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file(".keys/$deployTarget/key.properties")
@@ -23,7 +42,7 @@ val releaseSigningReady = keystorePropertiesFile.exists().also { found ->
 }
 
 android {
-    namespace = "com.example.ryvo"
+    namespace = appId
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -37,14 +56,12 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.ryvo"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        applicationId = appId
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
     }
 
     signingConfigs {

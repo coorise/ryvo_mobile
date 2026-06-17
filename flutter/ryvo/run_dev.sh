@@ -4,10 +4,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MOBILE_ROOT="$(cd "$ROOT/../.." && pwd)"
 
-# shellcheck source=../../scripts/mobile-env.sh
-source "$MOBILE_ROOT/scripts/mobile-env.sh"
+# shellcheck source=scripts/flutter-env.sh
+source "$ROOT/scripts/flutter-env.sh"
 parse_run_flags "$@"
 
 while [[ $# -gt 0 ]]; do
@@ -18,10 +17,21 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-"$MOBILE_ROOT/scripts/set-package-id.sh" client "${RYVO_DEPLOY_TARGET}"
-DEFINES="$("$MOBILE_ROOT/scripts/write-dart-defines.sh" "$ROOT" "ryvo")"
+apply_package_id
+mapfile -t DART_DEFINES < <(flutter_dart_defines)
 
 cd "$ROOT"
 flutter pub get
-DEVICE="$(flutter devices 2>/dev/null | grep -E '• android' | head -1 | awk -F'•' '{gsub(/^ +| +$/,"",$2); print $2}')"
-exec flutter run -d "${FLUTTER_DEVICE:-$DEVICE}" --dart-define-from-file="$ROOT/dart_defines.json" "$@"
+DEVICE="$(resolve_flutter_device)"
+
+echo "==> ryvo client dev run"
+echo "    device: ${FLUTTER_DEVICE:-$DEVICE}"
+echo "    deploy: $RYVO_DEPLOY_TARGET"
+echo "    package: $(resolve_package_id client)"
+echo ""
+
+export RYVO_DEPLOY_TARGET
+exec flutter run \
+  -d "${FLUTTER_DEVICE:-$DEVICE}" \
+  "${DART_DEFINES[@]}" \
+  "$@"

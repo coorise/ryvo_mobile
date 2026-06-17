@@ -1,4 +1,4 @@
-package com.example.ryvo
+package com.ryvo.client
 
 import io.flutter.embedding.android.FlutterActivity
 
