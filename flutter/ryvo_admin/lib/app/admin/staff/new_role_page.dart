@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ryvo_admin/configs/const.dart';
 import 'package:ryvo_admin/guards/permission_gate.dart';
-import 'package:ryvo_admin/hooks/use_auth.dart';
+import 'package:ryvo_admin/stores/auth_store.dart';
 import 'package:ryvo_admin/hooks/use_rbac.dart';
 import 'package:ryvo_admin/services/rbac_service.dart';
 
@@ -35,7 +35,7 @@ class _NewRolePageState extends ConsumerState<NewRolePage> {
   }
 
   Future<List<String>> _loadPermissions() async {
-    final token = useAuth(ref).accessToken;
+    final token = ref.read(authProvider).accessToken;
     final matrix = await rbacService.getMatrix(token);
     final permissions = (matrix['permissions'] is List)
         ? (matrix['permissions'] as List)
@@ -61,7 +61,7 @@ class _NewRolePageState extends ConsumerState<NewRolePage> {
       return;
     }
     setState(() => _submitting = true);
-    final token = useAuth(ref).accessToken;
+    final token = ref.read(authProvider).accessToken;
     final messenger = ScaffoldMessenger.of(context);
 
     try {

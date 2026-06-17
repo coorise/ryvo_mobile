@@ -47,7 +47,9 @@ class Routes {
   static const adminCommMessages = '/admin/communication/messages';
   static const adminCommMessagesNew = '/admin/communication/messages/new';
   static const adminChatSupport = '/admin/communication/chat-support';
+  static const adminComm = '/admin/communication';
   static const adminHrFeedbacks = '/admin/hr/feedbacks';
+  static const adminHr = '/admin/hr';
   static const adminPayments = '/admin/payments';
   static const adminSecurity = '/admin/security';
   static const adminAudit = '/admin/audit';
@@ -56,6 +58,7 @@ class Routes {
   static const adminSettingsConfigurations = '/admin/settings/configurations';
   static const adminSettingsTasks = '/admin/settings/tasks';
   static const adminObservability = '/admin/observability';
+  static const adminFinance = '/admin/finance';
   static const adminFinanceReferrals = '/admin/finance/referrals';
   static const adminFinanceTariffs = '/admin/finance/tariffs';
   static const adminFinanceCheckouts = '/admin/finance/checkouts';
@@ -66,4 +69,16 @@ class Routes {
 
   static const legalTos = '/legal/tos';
   static const legalPrivacy = '/legal/privacy';
+}
+
+/// Tab query values — mirrors web `ADMIN_TABS`.
+class AdminTabs {
+  AdminTabs._();
+
+  static const chatSupportClients = 'clients';
+  static const chatSupportDrivers = 'drivers';
+
+  static const feedbacksProduct = 'product-services';
+  static const feedbacksDrivers = 'drivers-services';
+  static const feedbacksStaff = 'staff-services';
 }

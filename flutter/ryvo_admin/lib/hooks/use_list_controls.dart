@@ -40,7 +40,7 @@ class ListControlsState {
   const ListControlsState({
     required this.defaultSortKey,
     this.search = '',
-    this.layout = ListLayout.table,
+    this.layout = ListLayout.grid,
     this.sort,
     this.gridSortValue = '',
     this.loadMode = ListLoadMode.infinite,
@@ -140,6 +140,17 @@ class ListControlsNotifier extends StateNotifier<ListControlsState> {
   }
 }
 
+String defaultSortKeyForListScope(String scope) {
+  return switch (scope) {
+    'rides' => 'created_at',
+    'audit' => 'created_at',
+    'messages' => 'created_at',
+    'security_events' => 'created_at',
+    'feedbacks' => 'created_at',
+    _ => 'updated_at',
+  };
+}
+
 final listControlsProvider = StateNotifierProvider.family<ListControlsNotifier, ListControlsState, String>(
-  (ref, defaultSortKey) => ListControlsNotifier(defaultSortKey: defaultSortKey),
+  (ref, scope) => ListControlsNotifier(defaultSortKey: defaultSortKeyForListScope(scope)),
 );

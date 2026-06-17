@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import 'package:ryvo_admin/components/admin/admin_list_layout.dart';
 import 'package:ryvo_admin/components/admin/admin_list_ui.dart';
+import 'package:ryvo_admin/components/admin/admin_managed_list.dart';
+import 'package:ryvo_admin/components/admin/admin_selectable_list.dart';
 import 'package:ryvo_admin/guards/permission_gate.dart';
+import 'package:ryvo_admin/hooks/use_bulk_selection.dart';
 import 'package:ryvo_admin/hooks/use_list_controls.dart';
 import 'package:ryvo_admin/hooks/use_paginated_slice.dart';
+import 'package:ryvo_admin/lib/csv_export.dart';
 import 'package:ryvo_admin/services/admin_service.dart';
 import 'package:ryvo_admin/stores/auth_store.dart';
 
@@ -32,14 +37,16 @@ class AdminRidesPage extends ConsumerStatefulWidget {
 class _AdminRidesPageState extends ConsumerState<AdminRidesPage> {
   final PaginatedSliceHook<Map<String, dynamic>> _slice =
       PaginatedSliceHook<Map<String, dynamic>>();
+  final BulkSelection _selection = BulkSelection();
   String _statusFilter = 'all';
+
+  void _refreshSelection() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    final controls = ref.watch(listControlsProvider('created_at'));
-    final controlsNotifier = ref.read(
-      listControlsProvider('created_at').notifier,
-    );
+    const controlsKey = 'rides';
+    final controls = ref.watch(listControlsProvider(controlsKey));
+    final controlsNotifier = ref.read(listControlsProvider(controlsKey).notifier);
     final ridesAsync = ref.watch(_ridesProvider);
 
     return PermissionGate(
@@ -63,20 +70,22 @@ class _AdminRidesPageState extends ConsumerState<AdminRidesPage> {
           final rows = _filterAndSortRows(all, controls, _statusFilter);
           final pagination = _slice.call(
             rows,
-            PaginatedSliceOptions(
-              pageSize: controls.pageSize,
-              loadMode: controls.loadMode,
-              page: controls.page,
-              setPage: controlsNotifier.setPage,
-              infinitePages: controls.infinitePages,
-              setInfinitePages: controlsNotifier.setInfinitePages,
+            adminPaginatedOptions(
+              controls: controls,
+              notifier: controlsNotifier,
               resetDeps: [
                 controls.search,
                 controls.activeSort?.key,
                 controls.activeSort?.dir.name,
                 _statusFilter,
+                controls.layout.name,
               ],
             ),
+          );
+          final visibleIds = pagination.visibleItems.map(rowId).toList(growable: false);
+          final sliceOptions = adminPaginatedOptions(
+            controls: controls,
+            notifier: controlsNotifier,
           );
 
           return SingleChildScrollView(
@@ -89,7 +98,13 @@ class _AdminRidesPageState extends ConsumerState<AdminRidesPage> {
                   subtitle:
                       '${stats.inProgress} in progress · ${stats.total} total · ${stats.cancelRate.toStringAsFixed(1)}% cancel rate',
                   action: ShadButton.outline(
-                    onPressed: () {},
+                    onPressed: () {
+                      final csv = rowsToCsv(
+                        rows,
+                        const ['id', 'pickup_address', 'dropoff_address', 'fare_estimate', 'status', 'created_at'],
+                      );
+                      showCsvExportDialog(context, title: 'Export rides', csv: csv);
+                    },
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -101,36 +116,40 @@ class _AdminRidesPageState extends ConsumerState<AdminRidesPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                AdminStatGrid(
-                  children: [
-                    AdminStatCard(
-                      icon: LucideIcons.car,
-                      label: 'Total',
-                      value: '${stats.total}',
-                    ),
-                    AdminStatCard(
-                      icon: LucideIcons.clock3,
-                      label: 'In Progress',
-                      value: '${stats.inProgress}',
-                      tone: AdminStatTone.success,
-                    ),
-                    AdminStatCard(
-                      icon: LucideIcons.dollarSign,
-                      label: 'Revenue',
-                      value: NumberFormat.currency(
-                        symbol: r'$',
-                      ).format(stats.revenue),
-                      tone: AdminStatTone.info,
-                    ),
-                    AdminStatCard(
-                      icon: LucideIcons.xCircle,
-                      label: 'Cancel Rate',
-                      value: '${stats.cancelRate.toStringAsFixed(1)}%',
-                      tone: stats.cancelRate > 5
-                          ? AdminStatTone.danger
-                          : AdminStatTone.warning,
-                    ),
-                  ],
+                AdminCollapsibleOverview(
+                  summary:
+                      '${stats.total} total · ${stats.inProgress} in progress · ${stats.cancelRate.toStringAsFixed(1)}% cancel',
+                  child: AdminStatGrid(
+                    children: [
+                      AdminStatCard(
+                        icon: LucideIcons.car,
+                        label: 'Total',
+                        value: '${stats.total}',
+                      ),
+                      AdminStatCard(
+                        icon: LucideIcons.clock3,
+                        label: 'In Progress',
+                        value: '${stats.inProgress}',
+                        tone: AdminStatTone.success,
+                      ),
+                      AdminStatCard(
+                        icon: LucideIcons.dollarSign,
+                        label: 'Revenue',
+                        value: NumberFormat.currency(
+                          symbol: r'$',
+                        ).format(stats.revenue),
+                        tone: AdminStatTone.info,
+                      ),
+                      AdminStatCard(
+                        icon: LucideIcons.xCircle,
+                        label: 'Cancel Rate',
+                        value: '${stats.cancelRate.toStringAsFixed(1)}%',
+                        tone: stats.cancelRate > 5
+                            ? AdminStatTone.danger
+                            : AdminStatTone.warning,
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 AdminSearchToolbar(
@@ -138,72 +157,73 @@ class _AdminRidesPageState extends ConsumerState<AdminRidesPage> {
                   onChanged: controlsNotifier.setSearch,
                   placeholder:
                       'Search rides by id, pickup, dropoff, client or driver',
-                  filters: [
-                    AdminFilterSelect(
-                      value: _statusFilter,
-                      onChanged: (v) => setState(() => _statusFilter = v),
-                      options: const [
-                        AdminFilterOption(value: 'all', label: 'All statuses'),
-                        AdminFilterOption(value: 'pending', label: 'Pending'),
-                        AdminFilterOption(value: 'matched', label: 'Matched'),
-                        AdminFilterOption(
-                          value: 'cancelled',
-                          label: 'Cancelled',
-                        ),
-                        AdminFilterOption(value: 'expired', label: 'Expired'),
-                      ],
-                    ),
-                  ],
                 ),
                 const SizedBox(height: 10),
-                _ListControlsRow(
+                AdminManagedListToolbarSection(
                   controls: controls,
                   notifier: controlsNotifier,
-                ),
-                const SizedBox(height: 12),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (pagination.visibleItems.isEmpty) {
-                      return const AdminTableCard(
-                        isEmpty: true,
-                        empty: Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Center(child: Text('No data')),
-                        ),
-                        child: SizedBox.shrink(),
-                      );
-                    }
-                    if (constraints.maxWidth < 920) {
-                      return Column(
-                        children: pagination.visibleItems
-                            .map(_RideCard.new)
-                            .toList(growable: false),
-                      );
-                    }
-                    return _RidesTable(rows: pagination.visibleItems);
-                  },
-                ),
-                const SizedBox(height: 12),
-                _PaginationFooter(
-                  total: pagination.total,
-                  page: pagination.page,
-                  totalPages: pagination.totalPages,
-                  showingFrom: pagination.showingFrom,
-                  showingTo: pagination.showingTo,
-                  hasMore: pagination.hasMore,
-                  loadMode: pagination.loadMode,
-                  onPageChange: controlsNotifier.setPage,
-                  onLoadMore: () => _slice.loadMore(
-                    pagination,
-                    PaginatedSliceOptions(
-                      pageSize: controls.pageSize,
-                      loadMode: controls.loadMode,
-                      page: controls.page,
-                      setPage: controlsNotifier.setPage,
-                      infinitePages: controls.infinitePages,
-                      setInfinitePages: controlsNotifier.setInfinitePages,
-                    ),
+                  selection: _selection,
+                  onSelectionChanged: _refreshSelection,
+                  sortOptions: const [
+                    AdminFilterOption(value: 'created_at:desc', label: 'Newest first'),
+                    AdminFilterOption(value: 'created_at:asc', label: 'Oldest first'),
+                    AdminFilterOption(value: 'status:asc', label: 'Status A–Z'),
+                    AdminFilterOption(value: 'status:desc', label: 'Status Z–A'),
+                  ],
+                  filters: AdminFilterSelect(
+                    value: _statusFilter,
+                    onChanged: (v) => setState(() => _statusFilter = v),
+                    options: const [
+                      AdminFilterOption(value: 'all', label: 'All statuses'),
+                      AdminFilterOption(value: 'pending', label: 'Pending'),
+                      AdminFilterOption(value: 'matched', label: 'Matched'),
+                      AdminFilterOption(value: 'cancelled', label: 'Cancelled'),
+                      AdminFilterOption(value: 'expired', label: 'Expired'),
+                    ],
                   ),
+                ),
+                const SizedBox(height: 12),
+                AdminLayoutSwitch(
+                  layout: controls.layout,
+                  isEmpty: pagination.visibleItems.isEmpty,
+                  empty: const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Center(child: Text('No data')),
+                  ),
+                  table: _RidesTable(
+                    rows: pagination.visibleItems,
+                    selection: _selection,
+                    allSelected: _selection.isAllSelected(visibleIds),
+                    someSelected: _selection.isSomeSelected(visibleIds),
+                    onToggleAll: () {
+                      _selection.toggleAll(visibleIds);
+                      _refreshSelection();
+                    },
+                    onToggleRow: (id) {
+                      _selection.toggle(id);
+                      _refreshSelection();
+                    },
+                  ),
+                  grid: AdminEntityGrid(
+                    children: [
+                      for (final trip in pagination.visibleItems)
+                        _RideGridCard(
+                          trip: trip,
+                          selected: _selection.isSelected(rowId(trip)),
+                          onToggleSelected: () {
+                            _selection.toggle(rowId(trip));
+                            _refreshSelection();
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                AdminManagedListFooterSection(
+                  pagination: pagination,
+                  notifier: controlsNotifier,
+                  slice: _slice,
+                  sliceOptions: sliceOptions,
                 ),
               ],
             ),
@@ -294,50 +314,22 @@ List<Map<String, dynamic>> _filterAndSortRows(
   return items;
 }
 
-class _ListControlsRow extends StatelessWidget {
-  const _ListControlsRow({required this.controls, required this.notifier});
-
-  final ListControlsState controls;
-  final ListControlsNotifier notifier;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        AdminFilterSelect(
-          width: 150,
-          value: controls.loadMode.name,
-          onChanged: (v) => notifier.setLoadMode(
-            v == 'pages' ? ListLoadMode.pages : ListLoadMode.infinite,
-          ),
-          options: const [
-            AdminFilterOption(value: 'infinite', label: 'Infinite'),
-            AdminFilterOption(value: 'pages', label: 'Pages'),
-          ],
-        ),
-        AdminFilterSelect(
-          width: 120,
-          value: '${controls.pageSize}',
-          onChanged: (v) =>
-              notifier.setPageSize(int.tryParse(v) ?? controls.pageSize),
-          options: const [
-            AdminFilterOption(value: '10', label: '10'),
-            AdminFilterOption(value: '20', label: '20'),
-            AdminFilterOption(value: '30', label: '30'),
-            AdminFilterOption(value: '50', label: '50'),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
 class _RidesTable extends StatelessWidget {
-  const _RidesTable({required this.rows});
+  const _RidesTable({
+    required this.rows,
+    required this.selection,
+    required this.allSelected,
+    required this.someSelected,
+    required this.onToggleAll,
+    required this.onToggleRow,
+  });
 
   final List<Map<String, dynamic>> rows;
+  final BulkSelection selection;
+  final bool allSelected;
+  final bool someSelected;
+  final VoidCallback onToggleAll;
+  final ValueChanged<String> onToggleRow;
 
   @override
   Widget build(BuildContext context) {
@@ -358,6 +350,15 @@ class _RidesTable extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
+                      SizedBox(
+                        width: 52,
+                        child: AdminListSelectCheckbox(
+                          checked: allSelected,
+                          indeterminate: someSelected,
+                          onChanged: onToggleAll,
+                          semanticLabel: 'Select all',
+                        ),
+                      ),
                       SizedBox(
                         width: 120,
                         child: Text('ID', style: headerStyle),
@@ -386,7 +387,12 @@ class _RidesTable extends StatelessWidget {
                   ),
                 ),
               ),
-              ...rows.map((trip) => _RideRow(trip: trip)),
+              for (final trip in rows)
+                _RideRow(
+                  trip: trip,
+                  selected: selection.isSelected(rowId(trip)),
+                  onToggleSelected: () => onToggleRow(rowId(trip)),
+                ),
             ],
           ),
         ),
@@ -396,33 +402,48 @@ class _RidesTable extends StatelessWidget {
 }
 
 class _RideRow extends StatelessWidget {
-  const _RideRow({required this.trip});
+  const _RideRow({
+    required this.trip,
+    required this.selected,
+    required this.onToggleSelected,
+  });
 
   final Map<String, dynamic> trip;
+  final bool selected;
+  final VoidCallback onToggleSelected;
 
   @override
   Widget build(BuildContext context) {
     final status = trip['status']?.toString() ?? 'unknown';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              _shortId(trip['id']?.toString()),
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+    const actions = InlineRowActions();
+    return AdminListRowShell(
+      selected: selected,
+      onToggleSelected: onToggleSelected,
+      actions: actions,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
             ),
           ),
+        ),
+        child: Row(
+          children: [
+            AdminListSelectCheckbox(
+              checked: selected,
+              onChanged: onToggleSelected,
+            ),
+            SizedBox(
+              width: 120,
+              child: Text(
+                _shortId(trip['id']?.toString()),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+              ),
+            ),
           SizedBox(
             width: 220,
             child: Text(
@@ -462,99 +483,58 @@ class _RideRow extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }
 
-class _RideCard extends StatelessWidget {
-  const _RideCard(this.trip);
-
-  final Map<String, dynamic> trip;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  _shortId(trip['id']?.toString()),
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const Spacer(),
-                StatusBadge(
-                  label: _text(trip['status']),
-                  variant: StatusBadgeVariant.defaultVariant,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text('Pickup: ${_text(trip['pickup_address'])}'),
-            Text('Dropoff: ${_text(trip['dropoff_address'])}'),
-            const SizedBox(height: 6),
-            Text(
-              'Fare: ${trip['fare_estimate'] == null ? '—' : NumberFormat.currency(symbol: r'$').format((trip['fare_estimate'] as num).toDouble())}',
-            ),
-            Text('Created: ${_formatDateTime(trip['created_at']?.toString())}'),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PaginationFooter extends StatelessWidget {
-  const _PaginationFooter({
-    required this.total,
-    required this.page,
-    required this.totalPages,
-    required this.showingFrom,
-    required this.showingTo,
-    required this.hasMore,
-    required this.loadMode,
-    required this.onPageChange,
-    required this.onLoadMore,
+class _RideGridCard extends StatelessWidget {
+  const _RideGridCard({
+    required this.trip,
+    required this.selected,
+    required this.onToggleSelected,
   });
 
-  final int total;
-  final int page;
-  final int totalPages;
-  final int showingFrom;
-  final int showingTo;
-  final bool hasMore;
-  final ListLoadMode loadMode;
-  final ValueChanged<int> onPageChange;
-  final VoidCallback onLoadMore;
+  final Map<String, dynamic> trip;
+  final bool selected;
+  final VoidCallback onToggleSelected;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        Text('Showing $showingFrom-$showingTo of $total'),
-        if (loadMode == ListLoadMode.pages) ...[
-          OutlinedButton(
-            onPressed: page > 1 ? () => onPageChange(page - 1) : null,
-            child: const Text('Prev'),
+    return AdminEntityGridCard(
+      selected: selected,
+      onTap: onToggleSelected,
+      selection: AdminListSelectCheckbox(compact: true, 
+        checked: selected,
+        onChanged: onToggleSelected,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Text(
+                _shortId(trip['id']?.toString()),
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const Spacer(),
+              StatusBadge(
+                label: _text(trip['status']),
+                variant: StatusBadgeVariant.defaultVariant,
+              ),
+            ],
           ),
-          Text('Page $page / $totalPages'),
-          OutlinedButton(
-            onPressed: page < totalPages ? () => onPageChange(page + 1) : null,
-            child: const Text('Next'),
+          const SizedBox(height: 8),
+          Text('Pickup: ${_text(trip['pickup_address'])}'),
+          Text('Dropoff: ${_text(trip['dropoff_address'])}'),
+          const SizedBox(height: 6),
+          Text(
+            'Fare: ${trip['fare_estimate'] == null ? '—' : NumberFormat.currency(symbol: r'$').format((trip['fare_estimate'] as num).toDouble())}',
           ),
-        ] else
-          OutlinedButton(
-            onPressed: hasMore ? onLoadMore : null,
-            child: const Text('Load more'),
-          ),
-      ],
+          Text('Created: ${_formatDateTime(trip['created_at']?.toString())}'),
+        ],
+      ),
     );
   }
 }

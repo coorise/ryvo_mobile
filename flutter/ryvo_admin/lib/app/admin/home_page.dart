@@ -77,83 +77,110 @@ class AdminHomePage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                     ],
-                    AdminStatGrid(
-                      children: [
-                        AdminStatCard(
-                          icon: LucideIcons.car,
-                          label: 'Rides (24h)',
-                          value: NumberFormat.decimalPattern().format(rides24h),
-                          tone: AdminStatTone.neutral,
-                        ),
-                        AdminStatCard(
-                          icon: LucideIcons.dollarSign,
-                          label: 'Revenue Today',
-                          value: NumberFormat.currency(
-                            symbol: r'$',
-                          ).format(revenueToday),
-                          tone: AdminStatTone.success,
-                        ),
-                        AdminStatCard(
-                          icon: LucideIcons.xCircle,
-                          label: 'Cancel Rate',
-                          value: '${cancelRate.toStringAsFixed(1)}%',
-                          tone: cancelRate > 5
-                              ? AdminStatTone.danger
-                              : AdminStatTone.warning,
-                        ),
-                        AdminStatCard(
-                          icon: LucideIcons.star,
-                          label: 'Satisfaction',
-                          value: satisfaction == null
-                              ? '—'
-                              : '${satisfaction.toStringAsFixed(1)}/5',
-                          tone: AdminStatTone.info,
-                        ),
-                      ],
+                    AdminCollapsibleOverview(
+                      summary:
+                          '$rides24h rides · ${NumberFormat.currency(symbol: r'$').format(revenueToday)} revenue · ${cancelRate.toStringAsFixed(1)}% cancel',
+                      child: AdminStatGrid(
+                        children: [
+                          AdminStatCard(
+                            icon: LucideIcons.car,
+                            label: 'Rides (24h)',
+                            value: NumberFormat.decimalPattern().format(rides24h),
+                            tone: AdminStatTone.neutral,
+                          ),
+                          AdminStatCard(
+                            icon: LucideIcons.dollarSign,
+                            label: 'Revenue Today',
+                            value: NumberFormat.currency(
+                              symbol: r'$',
+                            ).format(revenueToday),
+                            tone: AdminStatTone.success,
+                          ),
+                          AdminStatCard(
+                            icon: LucideIcons.xCircle,
+                            label: 'Cancel Rate',
+                            value: '${cancelRate.toStringAsFixed(1)}%',
+                            tone: cancelRate > 5
+                                ? AdminStatTone.danger
+                                : AdminStatTone.warning,
+                          ),
+                          AdminStatCard(
+                            icon: LucideIcons.star,
+                            label: 'Satisfaction',
+                            value: satisfaction == null
+                                ? '—'
+                                : '${satisfaction.toStringAsFixed(1)}/5',
+                            tone: AdminStatTone.info,
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final isWide = constraints.maxWidth >= 1100;
-                        return Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: [
-                            SizedBox(
-                              width: isWide
-                                  ? constraints.maxWidth * 0.63
-                                  : constraints.maxWidth,
-                              child: _ChartCard(
-                                chart: chart,
-                                maxCount: maxCount,
+                        final chartCard = _ChartCard(chart: chart, maxCount: maxCount);
+                        final pendingCard =
+                            _PendingDriversCard(drivers: data.pendingDrivers);
+                        final auditCard = _RecentAuditCard(rows: data.recentAudit);
+                        final liveCard = _LiveTripsCard(
+                          activeTrips:
+                              (data.live['active_trips'] as num?)?.toInt() ?? 0,
+                        );
+
+                        if (isWide) {
+                          return Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              SizedBox(
+                                width: constraints.maxWidth * 0.63,
+                                child: chartCard,
                               ),
-                            ),
-                            SizedBox(
-                              width: isWide
-                                  ? constraints.maxWidth * 0.35
-                                  : constraints.maxWidth,
-                              child: _PendingDriversCard(
-                                drivers: data.pendingDrivers,
+                              SizedBox(
+                                width: constraints.maxWidth * 0.35,
+                                child: pendingCard,
                               ),
-                            ),
-                            SizedBox(
-                              width: isWide
-                                  ? constraints.maxWidth * 0.63
-                                  : constraints.maxWidth,
-                              child: _RecentAuditCard(rows: data.recentAudit),
-                            ),
-                            SizedBox(
-                              width: isWide
-                                  ? constraints.maxWidth * 0.35
-                                  : constraints.maxWidth,
-                              child: _LiveTripsCard(
-                                activeTrips:
-                                    (data.live['active_trips'] as num?)
-                                        ?.toInt() ??
-                                    0,
+                              SizedBox(
+                                width: constraints.maxWidth * 0.63,
+                                child: auditCard,
                               ),
-                            ),
-                          ],
+                              SizedBox(
+                                width: constraints.maxWidth * 0.35,
+                                child: liveCard,
+                              ),
+                            ],
+                          );
+                        }
+
+                        return DefaultTabController(
+                          length: 4,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const TabBar(
+                                isScrollable: true,
+                                tabAlignment: TabAlignment.start,
+                                tabs: [
+                                  Tab(text: 'Volume'),
+                                  Tab(text: 'Pending'),
+                                  Tab(text: 'Audit'),
+                                  Tab(text: 'Live'),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 320,
+                                child: TabBarView(
+                                  children: [
+                                    chartCard,
+                                    pendingCard,
+                                    auditCard,
+                                    liveCard,
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
                     ),

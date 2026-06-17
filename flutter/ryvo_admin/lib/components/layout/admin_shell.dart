@@ -6,6 +6,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:ryvo_admin/components/layout/admin_drawer.dart';
 import 'package:ryvo_admin/components/layout/admin_global_search.dart';
 import 'package:ryvo_admin/components/layout/admin_notifications_panel.dart';
+import 'package:ryvo_admin/components/layout/language_switcher.dart';
 import 'package:ryvo_admin/configs/admin_nav.dart';
 import 'package:ryvo_admin/configs/const.dart';
 import 'package:ryvo_admin/core/common/view_insets.dart';
@@ -14,6 +15,7 @@ import 'package:ryvo_admin/hooks/use_admin_dashboard.dart';
 import 'package:ryvo_admin/hooks/use_auth.dart';
 import 'package:ryvo_admin/hooks/use_notifications.dart';
 import 'package:ryvo_admin/i18n/t.dart';
+import 'package:ryvo_admin/stores/locale_store.dart';
 import 'package:ryvo_admin/stores/theme_store.dart';
 
 /// Admin app chrome — drawer (web sidebar) + top bar + bottom nav (mobile-first).
@@ -82,6 +84,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   @override
   Widget build(BuildContext context) {
     final path = GoRouterState.of(context).uri.path;
+    ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);
     final isDark = themeMode == ThemeMode.dark;
     final auth = useAuth(ref);
@@ -118,10 +121,11 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                 ? const AdminGlobalSearch()
                 : IconButton(
                     tooltip: T.nav('common.search'),
-                    onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                    onPressed: () => context.go(Routes.search),
                     icon: const Icon(LucideIcons.search, size: 20),
                   ),
           ),
+          const LanguageSwitcher(compact: true),
           IconButton(
             tooltip: isDark ? 'Light mode' : 'Dark mode',
             onPressed: () => ref.read(themeModeProvider.notifier).toggle(),

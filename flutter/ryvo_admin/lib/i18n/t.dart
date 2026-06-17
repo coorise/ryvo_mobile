@@ -1,4 +1,6 @@
-/// Minimal nav labels — full i18n wiring comes later; keys mirror en.json.
+import 'package:ryvo_admin/i18n/app_i18n.dart';
+
+/// Translation helper — keys mirror web i18next (`nav.profile`, `common.signOut`, …).
 class T {
   T._();
 
@@ -45,5 +47,9 @@ class T {
     'common.about': 'About',
   };
 
-  static String nav(String key) => _nav[key] ?? key;
+  static String nav(String key) {
+    final translated = AppI18n.instance.tr(key);
+    if (translated != key) return translated;
+    return _nav[key] ?? key;
+  }
 }

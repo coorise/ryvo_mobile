@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:ryvo_admin/components/admin/admin_list_ui.dart';
 import 'package:ryvo_admin/configs/const.dart';
 import 'package:ryvo_admin/guards/permission_gate.dart';
-import 'package:ryvo_admin/hooks/use_auth.dart';
 import 'package:ryvo_admin/services/messages_service.dart';
 import 'package:ryvo_admin/stores/auth_store.dart';
 
@@ -97,7 +96,7 @@ class _MessageComposePageState extends ConsumerState<MessageComposePage> {
   Future<void> _saveDraft() async {
     if (!_validate()) return;
     setState(() => _submitting = true);
-    final token = useAuth(ref).accessToken;
+    final token = ref.read(authProvider).accessToken;
     final messenger = ScaffoldMessenger.of(context);
 
     try {
@@ -127,7 +126,7 @@ class _MessageComposePageState extends ConsumerState<MessageComposePage> {
   Future<void> _sendNow() async {
     if (!_validate()) return;
     setState(() => _submitting = true);
-    final token = useAuth(ref).accessToken;
+    final token = ref.read(authProvider).accessToken;
     final messenger = ScaffoldMessenger.of(context);
     final status = _delayMinutes > 0 ? 'queued' : 'sent';
 

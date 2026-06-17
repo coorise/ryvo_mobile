@@ -46,6 +46,10 @@ class PaginatedSliceResult<T> {
 class PaginatedSliceHook<T> {
   Object? _lastResetKey;
 
+  void _defer(void Function() action) {
+    Future.microtask(action);
+  }
+
   PaginatedSliceResult<T> call(List<T> allItems, PaginatedSliceOptions options) {
     final safePageSize = options.pageSize < 1 ? 1 : options.pageSize;
     final total = allItems.length;
@@ -56,14 +60,18 @@ class PaginatedSliceHook<T> {
       _lastResetKey = resetKey;
     } else if (_lastResetKey != resetKey) {
       _lastResetKey = resetKey;
-      options.setPage(1);
-      options.setInfinitePages(1);
+      _defer(() {
+        options.setPage(1);
+        options.setInfinitePages(1);
+      });
     }
 
-    if (options.page > totalPages) {
-      options.setPage(totalPages);
+    var page = options.page;
+    if (page > totalPages) {
+      page = totalPages;
+      _defer(() => options.setPage(totalPages));
     }
-    final page = options.page.clamp(1, totalPages);
+    page = page.clamp(1, totalPages);
     final infinitePages = options.infinitePages < 1 ? 1 : options.infinitePages;
 
     final List<T> visibleItems;

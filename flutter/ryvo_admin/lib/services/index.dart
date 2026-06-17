@@ -6,6 +6,7 @@ export 'feedbacks_service.dart';
 export 'finance_service.dart';
 export 'kyc_service.dart';
 export 'map_service.dart';
+export 'routing_service.dart';
 export 'messages_service.dart';
 export 'notification_service.dart';
 export 'rbac_service.dart';
