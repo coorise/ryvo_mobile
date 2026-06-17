@@ -50,6 +50,8 @@ class AdminAccess {
         if (canSeeAdminNavItem(user, item)) return item.href;
       }
     }
+    // Session exists but RBAC claims may still be loading — avoid sending staff to landing.
+    if (user != null) return Routes.adminHome;
     return Routes.landing;
   }
 

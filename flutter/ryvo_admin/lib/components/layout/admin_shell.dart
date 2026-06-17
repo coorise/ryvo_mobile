@@ -7,6 +7,7 @@ import 'package:ryvo_admin/components/layout/admin_drawer.dart';
 import 'package:ryvo_admin/components/layout/admin_global_search.dart';
 import 'package:ryvo_admin/components/layout/admin_notifications_panel.dart';
 import 'package:ryvo_admin/components/layout/language_switcher.dart';
+import 'package:ryvo_admin/components/update/update_check_host.dart';
 import 'package:ryvo_admin/configs/admin_nav.dart';
 import 'package:ryvo_admin/configs/const.dart';
 import 'package:ryvo_admin/core/common/view_insets.dart';
@@ -32,6 +33,12 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _notificationsKey = GlobalKey();
   var _notificationsOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    scheduleUpdatePrompt(context);
+  }
 
   static const _bottomRoutes = [
     Routes.adminHome,

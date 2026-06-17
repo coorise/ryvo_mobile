@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:ryvo_admin/services/rbac_service.dart';
 import 'package:ryvo_admin/types/interfaces/schemas/session_user.dart';
+
+const _enrichTimeout = Duration(seconds: 12);
 
 /// Merge roles/permissions from auth-hooks when the Supabase JWT omits app_metadata claims.
 Future<SessionUser> enrichSessionUser(SessionUser user, String accessToken) async {
   try {
-    final me = await RbacService().getMe(accessToken);
+    final me = await RbacService()
+        .getMe(accessToken)
+        .timeout(_enrichTimeout, onTimeout: () => throw TimeoutException('rbac/me'));
     return SessionUser(
       id: user.id,
       email: user.email,

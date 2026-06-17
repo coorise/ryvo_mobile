@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -45,18 +47,30 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = const AuthState(isReady: true);
       return;
     }
-    var session = auth.currentSession();
-    if (session != null) {
-      session = await enrichAuthSession(session);
-    }
+    final session = auth.currentSession();
+    // Mark ready immediately so resume/cold-start does not hang on splash while
+    // RBAC enrichment runs (network may be slow after backgrounding).
     state = AuthState(session: session, isReady: true);
-    auth.authChanges().listen((eventSession) async {
-      var session = eventSession;
-      if (session != null) {
-        session = await enrichAuthSession(session);
+    if (session != null) {
+      unawaited(_applyEnrichedSession(session));
+    }
+    auth.authChanges().listen((eventSession) {
+      state = AuthState(session: eventSession, isReady: true);
+      if (eventSession != null) {
+        unawaited(_applyEnrichedSession(eventSession));
       }
-      state = AuthState(session: session, isReady: true);
     });
+  }
+
+  Future<void> _applyEnrichedSession(AuthSession session) async {
+    final token = session.accessToken;
+    try {
+      final enriched = await enrichAuthSession(session);
+      if (state.accessToken != token) return;
+      state = AuthState(session: enriched, isReady: true);
+    } catch (_) {
+      // Keep the Supabase session; RBAC claims may arrive on the next refresh.
+    }
   }
 
   Future<void> signIn(String email, String password) async {

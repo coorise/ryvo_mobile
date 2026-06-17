@@ -17,7 +17,7 @@ class _UpdateCheckHostState extends State<UpdateCheckHost> {
   Widget build(BuildContext context) => widget.child;
 }
 
-/// Call from landing (or admin home) once the route is visible.
+/// Call from landing (logged out) or [AdminShell] (logged in) once the route is visible.
 void scheduleUpdatePrompt(BuildContext context) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
     Future<void>.delayed(const Duration(milliseconds: 400), () {

@@ -35,21 +35,28 @@ Future<T> apiRequest<T>(
     headers['Authorization'] = 'Bearer ${options.token}';
   }
 
-  final res = await http.Client().send(
-    http.Request(options.method, url)
-      ..headers.addAll(headers)
-      ..body = options.body != null ? jsonEncode(options.body) : '',
-  );
-  final body = await res.stream.bytesToString();
-  dynamic json;
+  final client = http.Client();
   try {
-    json = body.isEmpty ? {} : jsonDecode(body);
-  } catch (_) {
-    json = {};
-  }
+    final res = await client
+        .send(
+          http.Request(options.method, url)
+            ..headers.addAll(headers)
+            ..body = options.body != null ? jsonEncode(options.body) : '',
+        )
+        .timeout(const Duration(seconds: 20));
+    final body = await res.stream.bytesToString().timeout(const Duration(seconds: 20));
+    dynamic json;
+    try {
+      json = body.isEmpty ? {} : jsonDecode(body);
+    } catch (_) {
+      json = {};
+    }
 
-  if (res.statusCode >= 400) {
-    throw apiErrorFromResponse(res.statusCode, json, res.reasonPhrase ?? 'HTTP ${res.statusCode}');
+    if (res.statusCode >= 400) {
+      throw apiErrorFromResponse(res.statusCode, json, res.reasonPhrase ?? 'HTTP ${res.statusCode}');
+    }
+    return unwrapApiData<T>(json);
+  } finally {
+    client.close();
   }
-  return unwrapApiData<T>(json);
 }

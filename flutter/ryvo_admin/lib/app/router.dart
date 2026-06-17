@@ -51,28 +51,56 @@ import 'package:ryvo_admin/stores/auth_store.dart';
 /// Root navigator for dialogs (OTA update) above [GoRouter] routes.
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Notifies [GoRouter] when auth changes without recreating the router (which
+/// would reset navigation back to splash on every token refresh / resume).
+class RouterRefreshNotifier extends ChangeNotifier {
+  void notifyRouter() => notifyListeners();
+}
+
+final routerRefreshProvider = Provider<RouterRefreshNotifier>((ref) {
+  final notifier = RouterRefreshNotifier();
+  ref.listen(authProvider, (_, _) => notifier.notifyRouter());
+  ref.onDispose(notifier.dispose);
+  return notifier;
+});
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authProvider);
+  final refresh = ref.read(routerRefreshProvider);
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: Routes.splash,
+    refreshListenable: refresh,
     redirect: (context, state) {
+      final auth = ref.read(authProvider);
       final path = state.uri.path;
       final ready = auth.isReady;
       final user = auth.user;
-      final loggedIn = user != null && Abac.canAccessDashboard(user);
+      final hasSession = auth.session != null && user != null;
+      final canDashboard = hasSession && Abac.canAccessDashboard(user);
       final isAuthRoute = path.startsWith('/auth');
       final isPublic =
           path == Routes.splash || path == Routes.landing || isAuthRoute;
       final isAdmin = path.startsWith('/admin');
 
       if (!ready) return Routes.splash;
-      if (loggedIn && path == Routes.authLogin) {
+
+      if (path == Routes.splash) {
+        if (!hasSession) return Routes.landing;
+        return canDashboard
+            ? AdminAccess.firstAllowedAdminPath(user)
+            : Routes.adminHome;
+      }
+
+      if (hasSession && canDashboard && path == Routes.landing) {
         return AdminAccess.firstAllowedAdminPath(user);
       }
-      if (!loggedIn && !isPublic) return Routes.authLogin;
-      if (loggedIn && isAdmin && !AdminAccess.canAccessAdminPath(user, path)) {
+
+      if (canDashboard && path == Routes.authLogin) {
+        return AdminAccess.firstAllowedAdminPath(user);
+      }
+      if (!hasSession && !isPublic) return Routes.authLogin;
+      if (canDashboard && isAdmin && !AdminAccess.canAccessAdminPath(user, path)) {
         return AdminAccess.firstAllowedAdminPath(user);
       }
       return null;
