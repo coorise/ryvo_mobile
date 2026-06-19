@@ -30,7 +30,12 @@ if [[ ! -f "$BASE_ICON" ]]; then
 fi
 
 if ! python3 -c "import PIL" 2>/dev/null; then
-  python3 -m pip install --quiet --user Pillow
+  python3 -m pip install --quiet --user Pillow \
+    || python3 -m pip install --quiet --break-system-packages Pillow \
+    || {
+      echo "ERROR: Pillow is required for icon badges (pip install Pillow)" >&2
+      exit 1
+    }
 fi
 
 echo "==> apply-app-icons"
