@@ -40,14 +40,15 @@ case "$PLATFORM" in
     (
       cd "$APP_DIR"
       flutter pub get
-      mapfile -t EXTRA_DEFINES < <(
-        echo "--dart-define-from-file=${APP_DIR}/dart_defines.json"
-        echo "--dart-define=RELEASE_PLATFORM=ios"
-        echo "--dart-define=DEPLOY_TARGET=${RYVO_DEPLOY_TARGET}"
-        echo "--dart-define=UPDATE_CHANNEL=${RYVO_UPDATE_CHANNEL}"
-        echo "--dart-define=GITHUB_REPO=${GITHUB_REPO}"
-        echo "--dart-define=APP_SLUG=${APP_SLUG}"
-        echo "--dart-define=RELEASE_BRANCH=$(resolve_release_branch)"
+      RELEASE_BRANCH="$(resolve_release_branch)"
+      EXTRA_DEFINES=(
+        "--dart-define-from-file=${APP_DIR}/dart_defines.json"
+        "--dart-define=RELEASE_PLATFORM=ios"
+        "--dart-define=DEPLOY_TARGET=${RYVO_DEPLOY_TARGET}"
+        "--dart-define=UPDATE_CHANNEL=${RYVO_UPDATE_CHANNEL}"
+        "--dart-define=GITHUB_REPO=${GITHUB_REPO}"
+        "--dart-define=APP_SLUG=${APP_SLUG}"
+        "--dart-define=RELEASE_BRANCH=${RELEASE_BRANCH}"
       )
       flutter build ipa --release --no-codesign "${EXTRA_DEFINES[@]}"
     )
