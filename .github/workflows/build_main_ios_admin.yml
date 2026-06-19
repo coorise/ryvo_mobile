@@ -1,0 +1,43 @@
+name: Build admin iOS prod
+
+on:
+  push:
+    branches: [main_ios_admin]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  RYVO_DEPLOY_TARGET: prod
+  RYVO_UPDATE_CHANNEL: remote
+  RYVO_APP: admin
+  RYVO_RELEASE_PLATFORM: ios
+  SUPABASE_URL: ${{ secrets.PROD_SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.PROD_SUPABASE_ANON_KEY }}
+  FUNCTIONS_URL: ${{ secrets.PROD_SUPABASE_FUNCTIONS_URL }}
+  GOOGLE_MAPS_API_KEY: ${{ secrets.PROD_GOOGLE_MAPS_API_KEY }}
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build
+        id: build
+        run: chmod +x scripts/ci-build-release.sh && ./scripts/ci-build-release.sh admin prod ios
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.build.outputs.tag }}
+          name: Ryvo Admin iOS (prod) ${{ steps.build.outputs.tag }}
+          body: |
+            **Version:** `${{ steps.build.outputs.raw }}`
+            **Platform:** iOS (unsigned IPA — install manually)
+            **Release branch:** `main_ios_admin`
+
+            Merge `main` → `main_ios_admin` to publish admin iOS prod build.
+          files: .github_releases/mobile/ios/${{ steps.build.outputs.artifact_name }}

@@ -42,7 +42,12 @@ class Env {
 
   static const releaseBranch = String.fromEnvironment(
     'RELEASE_BRANCH',
-    defaultValue: 'dev_client',
+    defaultValue: 'dev_android',
+  );
+
+  static const releasePlatform = String.fromEnvironment(
+    'RELEASE_PLATFORM',
+    defaultValue: 'android',
   );
 
   static const appSlug = String.fromEnvironment(
@@ -60,7 +65,7 @@ class Env {
   }
 
   static String releaseTagPrefix() {
-    if (deployTarget == 'prod') return '$appSlug-v';
-    return '$appSlug-$deployTarget-v';
+    if (deployTarget == 'prod') return '$appSlug-$releasePlatform-v';
+    return '$appSlug-$releasePlatform-$deployTarget-v';
   }
 }

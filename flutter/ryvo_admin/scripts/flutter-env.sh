@@ -61,6 +61,7 @@ flutter_dart_defines() {
   echo "--dart-define=GITHUB_REPO=${GITHUB_REPO}"
   echo "--dart-define=APP_SLUG=ryvo_admin"
   echo "--dart-define=RELEASE_BRANCH=$(resolve_release_branch)"
+  echo "--dart-define=RELEASE_PLATFORM=${RYVO_RELEASE_PLATFORM:-android}"
 }
 
 resolve_flutter_device() {

@@ -46,7 +46,12 @@ class Env {
 
   static const releaseBranch = String.fromEnvironment(
     'RELEASE_BRANCH',
-    defaultValue: 'dev_admin',
+    defaultValue: 'dev_android_admin',
+  );
+
+  static const releasePlatform = String.fromEnvironment(
+    'RELEASE_PLATFORM',
+    defaultValue: 'android',
   );
 
   static const appSlug = String.fromEnvironment(
@@ -64,9 +69,9 @@ class Env {
     return updateChannel == 'remote' || deployTarget == 'dev' || deployTarget == 'prod';
   }
 
-  /// Release tag prefix, e.g. ryvo_admin-dev-v1.0.0+2
+  /// Release tag prefix, e.g. ryvo_admin-android-dev-v1.0.0+2
   static String releaseTagPrefix() {
-    if (deployTarget == 'prod') return '${appSlug}-v';
-    return '$appSlug-$deployTarget-v';
+    if (deployTarget == 'prod') return '$appSlug-$releasePlatform-v';
+    return '$appSlug-$releasePlatform-$deployTarget-v';
   }
 }

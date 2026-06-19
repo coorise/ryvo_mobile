@@ -8,6 +8,9 @@ export MOBILE_ROOT
 # local | dev | prod — controls Android/iOS applicationId suffix and Supabase endpoints in CI.
 : "${RYVO_DEPLOY_TARGET:=local}"
 
+# android | ios — release branch + OTA tag platform segment.
+: "${RYVO_RELEASE_PLATFORM:=android}"
+
 # local = never check GitHub releases; remote = prompt on app home/landing launch.
 : "${RYVO_UPDATE_CHANNEL:=local}"
 
@@ -19,20 +22,50 @@ export MOBILE_ROOT
 
 resolve_release_branch() {
   local app="${RYVO_APP:-client}"
-  case "${RYVO_DEPLOY_TARGET}-${app}" in
-    dev-admin) echo "dev_admin" ;;
-    prod-admin) echo "main_admin" ;;
-    dev-client) echo "dev_client" ;;
-    prod-client) echo "main_client" ;;
-    local-admin | local-client) echo "dev" ;;
+  local platform="${RYVO_RELEASE_PLATFORM:-android}"
+  local prefix="dev"
+  if [[ "${RYVO_DEPLOY_TARGET}" == "prod" ]]; then
+    prefix="main"
+  fi
+  case "${app}-${platform}" in
+    admin-android) echo "${prefix}_android_admin" ;;
+    admin-ios) echo "${prefix}_ios_admin" ;;
+    client-android) echo "${prefix}_android" ;;
+    client-ios) echo "${prefix}_ios" ;;
     *)
-      if [[ "${RYVO_DEPLOY_TARGET}" == "prod" ]]; then
-        echo "main_${app}"
-      else
-        echo "dev_${app}"
-      fi
+      echo "ERROR: unknown app/platform: ${app}-${platform}" >&2
+      return 1
       ;;
   esac
+}
+
+resolve_release_artifact_name() {
+  local app_slug="$1"
+  local target="$2"
+  local platform="$3"
+  local ext="apk"
+  if [[ "$platform" == "ios" ]]; then
+    ext="ipa"
+  fi
+  if [[ "$target" == "prod" ]]; then
+    echo "${app_slug}-${platform}.${ext}"
+  else
+    echo "${app_slug}-${platform}-${target}.${ext}"
+  fi
+}
+
+resolve_release_tag() {
+  local app_slug="$1"
+  local target="$2"
+  local platform="$3"
+  local raw_version="$4"
+  local tag_version
+  tag_version="$(echo "$raw_version" | tr '+' '-')"
+  if [[ "$target" == "prod" ]]; then
+    echo "${app_slug}-${platform}-v${tag_version}"
+  else
+    echo "${app_slug}-${platform}-${target}-v${tag_version}"
+  fi
 }
 
 resolve_package_id() {
@@ -80,10 +113,6 @@ resolve_supabase_secret_prefix() {
 }
 
 # GitHub Actions secret prefix for Android release signing (without _KEYSTORE_* suffix).
-# admin dev  → ADMIN_DEV_ANDROID
-# admin prod → ADMIN_PROD_ANDROID
-# client dev → DEV_ANDROID
-# client prod → PROD_ANDROID
 resolve_android_signing_secret_prefix() {
   local app="$1"
   local target="$2"

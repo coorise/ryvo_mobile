@@ -54,6 +54,7 @@ case "$APP_SLUG" in
 esac
 
 RELEASE_BRANCH="$(resolve_release_branch)"
+RELEASE_PLATFORM="${RYVO_RELEASE_PLATFORM:-android}"
 OUT="$APP_DIR/dart_defines.json"
 
 DART_DEFINES_OUT="$OUT" \
@@ -65,6 +66,7 @@ DEPLOY_TARGET="$RYVO_DEPLOY_TARGET" \
 UPDATE_CHANNEL="$RYVO_UPDATE_CHANNEL" \
 GITHUB_REPO="$GITHUB_REPO" \
 RELEASE_BRANCH="$RELEASE_BRANCH" \
+RELEASE_PLATFORM="$RELEASE_PLATFORM" \
 APP_SLUG="$APP_SLUG" \
 GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY:-}" \
 python3 -c '
@@ -78,6 +80,7 @@ data = {
     "UPDATE_CHANNEL": os.environ["UPDATE_CHANNEL"],
     "GITHUB_REPO": os.environ["GITHUB_REPO"],
     "RELEASE_BRANCH": os.environ["RELEASE_BRANCH"],
+    "RELEASE_PLATFORM": os.environ["RELEASE_PLATFORM"],
     "APP_SLUG": os.environ["APP_SLUG"],
 }
 maps = os.environ.get("GOOGLE_MAPS_API_KEY", "")

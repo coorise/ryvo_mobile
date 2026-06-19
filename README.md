@@ -6,11 +6,11 @@ Remote: [github.com/coorise/ryvo_mobile](https://github.com/coorise/ryvo_mobile)
 
 ## Deploy targets & package IDs
 
-| Target | Flag | Admin package | Client package | Release branch |
-|--------|------|---------------|----------------|----------------|
-| **Local** | `--local` (default) | `com.ryvo.admin.local` | `com.ryvo.client.local` | Off |
-| **Dev** | `--dev` | `com.ryvo.admin.dev` | `com.ryvo.client.dev` | `dev_admin` / `dev_client` |
-| **Prod** | `--prod` | `com.ryvo.admin` | `com.ryvo.client` | `main_admin` / `main_client` |
+| Target | Flag | Admin package | Client package |
+|--------|------|---------------|----------------|
+| **Local** | `--local` (default) | `com.ryvo.admin.local` | `com.ryvo.client.local` |
+| **Dev** | `--dev` | `com.ryvo.admin.dev` | `com.ryvo.client.dev` |
+| **Prod** | `--prod` | `com.ryvo.admin` | `com.ryvo.client` |
 
 Package IDs are applied with [change_app_package_name](https://pub.dev/packages/change_app_package_name). **Launcher icons** get a corner badge automatically:
 
@@ -40,7 +40,7 @@ cd flutter/ryvo_admin
 ### Update channel
 
 - **Local** (`--local` or default): no GitHub release check on launch.
-- **Remote** (`--dev` / `--prod`, or `--remote-updates`): on launch, app checks [GitHub releases](https://github.com/coorise/ryvo_mobile/releases) for a newer APK and prompts to download/install.
+- **Remote** (`--dev` / `--prod`, or `--remote-updates`): on launch, app checks [GitHub releases](https://github.com/coorise/ryvo_mobile/releases) for a newer **platform-specific** build (`.apk` on Android, `.ipa` on iOS) and prompts to download/install (Android in-app; iOS manual for now).
 
 Ignored release tags are stored in app preferences until a newer tag appears.
 
@@ -50,78 +50,76 @@ Configured in repo **Settings → Secrets**:
 
 | Secret | Used on |
 |--------|---------|
-| `DEV_SUPABASE_URL` | `dev_admin`, `dev_client` builds |
-| `DEV_SUPABASE_ANON_KEY` | dev release branches |
-| `DEV_SUPABASE_FUNCTIONS_URL` | dev release branches |
-| `DEV_GOOGLE_MAPS_API_KEY` | dev release branches |
-| `PROD_SUPABASE_URL` | `main_admin`, `main_client` builds |
-| `PROD_SUPABASE_ANON_KEY` | prod release branches |
-| `PROD_SUPABASE_FUNCTIONS_URL` | prod release branches |
-| `PROD_GOOGLE_MAPS_API_KEY` | prod release branches |
-| `ADMIN_DEV_ANDROID_KEYSTORE_BASE64` | `dev_admin` workflow |
-| `ADMIN_DEV_ANDROID_KEYSTORE_PASSWORD` | `dev_admin` |
-| `ADMIN_DEV_ANDROID_KEY_PASSWORD` | `dev_admin` |
-| `ADMIN_DEV_ANDROID_KEY_ALIAS` | `dev_admin` |
-| `ADMIN_PROD_ANDROID_KEYSTORE_BASE64` | `main_admin` workflow |
-| `ADMIN_PROD_ANDROID_KEYSTORE_PASSWORD` | `main_admin` |
-| `ADMIN_PROD_ANDROID_KEY_PASSWORD` | `main_admin` |
-| `ADMIN_PROD_ANDROID_KEY_ALIAS` | `main_admin` |
-| `DEV_ANDROID_KEYSTORE_BASE64` | `dev_client` workflow |
-| `DEV_ANDROID_KEYSTORE_PASSWORD` | `dev_client` |
-| `DEV_ANDROID_KEY_PASSWORD` | `dev_client` |
-| `DEV_ANDROID_KEY_ALIAS` | `dev_client` |
-| `PROD_ANDROID_KEYSTORE_BASE64` | `main_client` workflow |
-| `PROD_ANDROID_KEYSTORE_PASSWORD` | `main_client` |
-| `PROD_ANDROID_KEY_PASSWORD` | `main_client` |
-| `PROD_ANDROID_KEY_ALIAS` | `main_client` |
+| `DEV_SUPABASE_*` | `dev_*` release branches |
+| `PROD_SUPABASE_*` | `main_*` release branches |
+| `ADMIN_DEV_ANDROID_*` | `dev_android_admin` |
+| `ADMIN_PROD_ANDROID_*` | `main_android_admin` |
+| `DEV_ANDROID_*` | `dev_android` |
+| `PROD_ANDROID_*` | `main_android` |
 
-**Optional (not set yet):** iOS signing (`IOS_*`), Play Store upload. `GITHUB_TOKEN` is provided by Actions for releases.
+**iOS:** builds use `flutter build ipa --release --no-codesign` (unsigned IPA for manual install). Apple signing secrets are not required yet.
+
+`GITHUB_TOKEN` is provided by Actions for releases.
 
 ### Android release signing
 
-Keystores live under `flutter/<app>/android/.keys/<local|dev|prod>/` (gitignored):
-
-| App | Path | GitHub secret prefix |
-|-----|------|----------------------|
-| admin | `flutter/ryvo_admin/android/.keys/` | `ADMIN_DEV_ANDROID_*` / `ADMIN_PROD_ANDROID_*` |
-| client | `flutter/ryvo/android/.keys/` | `DEV_ANDROID_*` / `PROD_ANDROID_*` |
-
-Each folder needs `upload-keystore.jks` + `key.properties` (see `android/key.properties.example`).
+Keystores live under `flutter/<app>/android/.keys/<local|dev|prod>/` (gitignored).
 
 ```bash
-# One command per app + target (interactive password prompt)
-./scripts/generate-android-keystore.sh admin local
 ./scripts/generate-android-keystore.sh admin dev
-./scripts/generate-android-keystore.sh admin prod
-./scripts/generate-android-keystore.sh client dev
 ./scripts/generate-android-keystore.sh client prod
-./scripts/generate-android-keystore.sh client local
-
-# Non-interactive (optional)
-ANDROID_KEYSTORE_PASSWORD='…' ./scripts/generate-android-keystore.sh admin dev
-
-# Base64 for GitHub (admin dev example)
-base64 -w 0 flutter/ryvo_admin/android/.keys/dev/upload-keystore.jks
 ```
 
-`./run_build.sh release --dev` reads `android/.keys/dev/`; CI decodes the same layout from secrets before building.
+## Branches & workflows
 
-Release tags:
+| Branch | Purpose | Workflow |
+|--------|---------|----------|
+| `dev` | Integration — push daily work here | `build_dev.yml` (analyze + test) |
+| `main` | Stable snapshot for cloning | `build_main.yml` (analyze + test) |
+| `dev_android_admin` | Admin Android dev OTA | `build_dev_android_admin.yml` |
+| `dev_ios_admin` | Admin iOS dev release | `build_dev_ios_admin.yml` |
+| `main_android_admin` | Admin Android prod OTA | `build_main_android_admin.yml` |
+| `main_ios_admin` | Admin iOS prod release | `build_main_ios_admin.yml` |
+| `dev_android` | Client Android dev OTA | `build_dev_android.yml` |
+| `dev_ios` | Client iOS dev release | `build_dev_ios.yml` |
+| `main_android` | Client Android prod OTA | `build_main_android.yml` |
+| `main_ios` | Client iOS prod release | `build_main_ios.yml` |
 
-| App | Dev tag | Prod tag |
-|-----|---------|----------|
-| admin | `ryvo_admin-dev-v1.0.0-1` | `ryvo_admin-v1.0.0-1` |
-| client | `ryvo-dev-v1.0.0-1` | `ryvo-v1.0.0-1` |
+### Release tags
 
-## Branches
+Tags include **app**, **platform**, and **environment**:
 
-| Branch | Purpose | CI workflow |
-|--------|---------|-------------|
-| `dev` | Integration branch — commit and push here; **does not** trigger releases | — |
-| `main` | Stable snapshot for cloning; **does not** trigger releases | — |
-| `dev_admin` | Admin dev OTA releases | `build_dev_admin.yml` |
-| `main_admin` | Admin production OTA releases | `build_main_admin.yml` |
-| `dev_client` | Client/driver dev OTA releases | `build_dev.yml` |
-| `main_client` | Client/driver production OTA releases | `build_main.yml` |
+| App | Platform | Dev tag example | Prod tag example |
+|-----|----------|-----------------|------------------|
+| admin | Android | `ryvo_admin-android-dev-v1.0.2-8` | `ryvo_admin-android-v1.0.2-8` |
+| admin | iOS | `ryvo_admin-ios-dev-v1.0.2-8` | `ryvo_admin-ios-v1.0.2-8` |
+| client | Android | `ryvo-android-dev-v1.0.0-2` | `ryvo-android-v1.0.0-2` |
+| client | iOS | `ryvo-ios-dev-v1.0.0-2` | `ryvo-ios-v1.0.0-2` |
 
-**Release flow:** merge `dev` → `dev_admin` / `dev_client` / `main_admin` / `main_client` when you want to publish an OTA build for that app and environment.
+Artifacts: `ryvo_admin-android-dev.apk`, `ryvo_admin-ios-dev.ipa`, etc.
+
+### Release flow
+
+```bash
+cd client/mobile
+
+# 1. Work on dev
+git checkout dev
+git push origin dev                    # runs integration CI only
+
+# 2. Ship a platform build (merge dev or main as noted)
+git push origin dev:dev_android_admin  # admin Android dev
+git push origin dev:dev_ios_admin      # admin iOS dev
+git push origin main:main_android_admin # admin Android prod (after merging dev → main)
+git push origin main:main_ios_admin    # admin iOS prod
+
+git push origin dev:dev_android        # client Android dev
+git push origin dev:dev_ios            # client iOS dev
+git push origin main:main_android      # client Android prod
+git push origin main:main_ios          # client iOS prod
+
+# 3. Keep main stable (integration CI only)
+git checkout main && git merge dev && git push origin main
+```
+
+Bump `pubspec.yaml` version before re-pushing the same release branch (GitHub rejects duplicate tags).

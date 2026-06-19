@@ -1,62 +1,33 @@
-name: Build client production APK
+name: Main integration
 
 on:
   push:
-    branches: [main_client]
+    branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
-env:
-  RYVO_DEPLOY_TARGET: prod
-  RYVO_UPDATE_CHANNEL: remote
-  RYVO_APP: client
-  SUPABASE_URL: ${{ secrets.PROD_SUPABASE_URL }}
-  SUPABASE_ANON_KEY: ${{ secrets.PROD_SUPABASE_ANON_KEY }}
-  FUNCTIONS_URL: ${{ secrets.PROD_SUPABASE_FUNCTIONS_URL }}
-  GOOGLE_MAPS_API_KEY: ${{ secrets.PROD_GOOGLE_MAPS_API_KEY }}
-
 jobs:
-  build-client-android:
+  validate:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [ryvo, ryvo_admin]
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
 
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Pub get
+        working-directory: flutter/${{ matrix.app }}
+        run: flutter pub get
 
-      - name: Accept Android licenses
-        run: yes | flutter doctor --android-licenses
+      - name: Analyze
+        working-directory: flutter/${{ matrix.app }}
+        run: flutter analyze --no-fatal-infos
 
-      - name: Build client production release APK
-        id: build
-        env:
-          KEYSTORE_B64: ${{ secrets.PROD_ANDROID_KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.PROD_ANDROID_KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.PROD_ANDROID_KEY_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.PROD_ANDROID_KEY_ALIAS }}
-        run: chmod +x scripts/ci-build-release.sh && ./scripts/ci-build-release.sh client prod
-
-      - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.build.outputs.tag }}
-          name: Ryvo Client (prod) ${{ steps.build.outputs.tag }}
-          body: |
-            **Version:** `${{ steps.build.outputs.raw }}`
-            **Tag:** `${{ steps.build.outputs.tag }}`
-            **Release branch:** `main_client`
-
-            Automated client/driver production build. Merge `dev` → `main_client` to publish OTA updates.
-          files: .github_releases/mobile/android/${{ steps.build.outputs.apk_name }}
+      - name: Unit tests
+        working-directory: flutter/${{ matrix.app }}
+        run: flutter test

@@ -103,11 +103,12 @@ class GithubReleaseService {
 
       GithubReleaseAsset? apk;
       final assets = map['assets'];
+      final ext = _releaseAssetExtension();
       if (assets is List) {
         for (final a in assets) {
           if (a is! Map) continue;
           final asset = GithubReleaseAsset.fromJson(Map<String, dynamic>.from(a));
-          if (asset.name.endsWith('.apk')) {
+          if (asset.name.endsWith(ext)) {
             apk = asset;
             break;
           }
@@ -133,11 +134,18 @@ class GithubReleaseService {
     return pkg.packageName.endsWith('.dev') || pkg.packageName == 'com.ryvo.client';
   }
 
+  String _releaseAssetExtension() => Platform.isIOS ? '.ipa' : '.apk';
+
   Future<String> _releaseTagPrefix() async {
     if (Env.deployTarget != 'local') return Env.releaseTagPrefix();
+    final platform = Platform.isIOS ? 'ios' : 'android';
     final pkg = await PackageInfo.fromPlatform();
-    if (pkg.packageName.endsWith('.dev')) return '${Env.appSlug}-dev-v';
-    if (pkg.packageName == 'com.ryvo.client') return '${Env.appSlug}-v';
+    if (pkg.packageName.endsWith('.dev')) {
+      return '${Env.appSlug}-$platform-dev-v';
+    }
+    if (pkg.packageName == 'com.ryvo.client') {
+      return '${Env.appSlug}-$platform-v';
+    }
     return Env.releaseTagPrefix();
   }
 

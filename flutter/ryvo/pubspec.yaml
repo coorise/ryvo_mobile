@@ -1,7 +1,7 @@
 name: ryvo
 description: Ryvo-Line client/driver mobile app — mirrors client/web/ryvo portal architecture.
 publish_to: "none"
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.11.5

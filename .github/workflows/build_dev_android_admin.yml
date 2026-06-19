@@ -1,8 +1,8 @@
-name: Build admin dev APK
+name: Build admin Android dev
 
 on:
   push:
-    branches: [dev_admin]
+    branches: [dev_android_admin]
   workflow_dispatch:
 
 permissions:
@@ -12,52 +12,44 @@ env:
   RYVO_DEPLOY_TARGET: dev
   RYVO_UPDATE_CHANNEL: remote
   RYVO_APP: admin
+  RYVO_RELEASE_PLATFORM: android
   SUPABASE_URL: ${{ secrets.DEV_SUPABASE_URL }}
   SUPABASE_ANON_KEY: ${{ secrets.DEV_SUPABASE_ANON_KEY }}
   FUNCTIONS_URL: ${{ secrets.DEV_SUPABASE_FUNCTIONS_URL }}
   GOOGLE_MAPS_API_KEY: ${{ secrets.DEV_GOOGLE_MAPS_API_KEY }}
 
 jobs:
-  build-admin-android:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android licenses
-        run: yes | flutter doctor --android-licenses
-
-      - name: Build admin dev release APK
+      - uses: android-actions/setup-android@v3
+      - run: yes | flutter doctor --android-licenses
+      - name: Build
         id: build
         env:
           KEYSTORE_B64: ${{ secrets.ADMIN_DEV_ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ADMIN_DEV_ANDROID_KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.ADMIN_DEV_ANDROID_KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ADMIN_DEV_ANDROID_KEY_ALIAS }}
-        run: chmod +x scripts/ci-build-release.sh && ./scripts/ci-build-release.sh admin dev
-
-      - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+        run: chmod +x scripts/ci-build-release.sh && ./scripts/ci-build-release.sh admin dev android
+      - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.build.outputs.tag }}
-          name: Ryvo Admin (dev) ${{ steps.build.outputs.tag }}
+          name: Ryvo Admin Android (dev) ${{ steps.build.outputs.tag }}
           body: |
             **Version:** `${{ steps.build.outputs.raw }}`
-            **Tag:** `${{ steps.build.outputs.tag }}`
-            **Release branch:** `dev_admin`
+            **Platform:** Android
+            **Release branch:** `dev_android_admin`
 
-            Automated admin dev build. Merge `dev` → `dev_admin` to publish OTA updates.
-          files: .github_releases/mobile/android/${{ steps.build.outputs.apk_name }}
+            Merge `dev` → `dev_android_admin` to publish admin Android dev OTA.
+          files: .github_releases/mobile/android/${{ steps.build.outputs.artifact_name }}
           prerelease: true

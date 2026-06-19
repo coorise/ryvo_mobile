@@ -1,0 +1,55 @@
+name: Build client Android dev
+
+on:
+  push:
+    branches: [dev_android]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  RYVO_DEPLOY_TARGET: dev
+  RYVO_UPDATE_CHANNEL: remote
+  RYVO_APP: client
+  RYVO_RELEASE_PLATFORM: android
+  SUPABASE_URL: ${{ secrets.DEV_SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.DEV_SUPABASE_ANON_KEY }}
+  FUNCTIONS_URL: ${{ secrets.DEV_SUPABASE_FUNCTIONS_URL }}
+  GOOGLE_MAPS_API_KEY: ${{ secrets.DEV_GOOGLE_MAPS_API_KEY }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - uses: android-actions/setup-android@v3
+      - run: yes | flutter doctor --android-licenses
+      - name: Build
+        id: build
+        env:
+          KEYSTORE_B64: ${{ secrets.DEV_ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.DEV_ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.DEV_ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.DEV_ANDROID_KEY_ALIAS }}
+        run: chmod +x scripts/ci-build-release.sh && ./scripts/ci-build-release.sh client dev android
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.build.outputs.tag }}
+          name: Ryvo Client Android (dev) ${{ steps.build.outputs.tag }}
+          body: |
+            **Version:** `${{ steps.build.outputs.raw }}`
+            **Platform:** Android
+            **Release branch:** `dev_android`
+
+            Merge `dev` → `dev_android` to publish client/driver Android dev OTA.
+          files: .github_releases/mobile/android/${{ steps.build.outputs.artifact_name }}
+          prerelease: true
