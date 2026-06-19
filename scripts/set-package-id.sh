@@ -33,6 +33,16 @@ flutter pub get
 if ! grep -q 'applicationId = appId' "$DIR/android/app/build.gradle.kts" 2>/dev/null; then
   dart run change_app_package_name:main "$PKG"
 fi
+
+PBX="$DIR/ios/Runner.xcodeproj/project.pbxproj"
+if [[ -f "$PBX" ]]; then
+  sed -i.bak \
+    -e "s/PRODUCT_BUNDLE_IDENTIFIER = com\.ryvo\.\(client\|admin\)\(\.[a-z]*\)*;/PRODUCT_BUNDLE_IDENTIFIER = ${PKG};/g" \
+    -e "s/PRODUCT_BUNDLE_IDENTIFIER = com\.ryvo\.\(client\|admin\)\(\.[a-z]*\)*\.RunnerTests;/PRODUCT_BUNDLE_IDENTIFIER = ${PKG}.RunnerTests;/g" \
+    "$PBX"
+  rm -f "$PBX.bak"
+fi
+
 "$ROOT/scripts/apply-app-icons.sh" "$APP" "$TARGET"
 
 echo "Done: $PKG"

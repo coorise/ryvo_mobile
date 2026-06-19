@@ -50,15 +50,22 @@ case "$PLATFORM" in
         "--dart-define=APP_SLUG=${APP_SLUG}"
         "--dart-define=RELEASE_BRANCH=${RELEASE_BRANCH}"
       )
-      flutter build ipa --release --no-codesign "${EXTRA_DEFINES[@]}"
+      flutter build ios --release --no-codesign "${EXTRA_DEFINES[@]}"
     )
-    IPA_SRC="$(find "$APP_DIR/build/ios/ipa" -maxdepth 1 -name '*.ipa' -print -quit)"
-    if [[ -z "$IPA_SRC" || ! -f "$IPA_SRC" ]]; then
-      echo "ERROR: iOS IPA not found under $APP_DIR/build/ios/ipa" >&2
+    RUNNER_APP="$APP_DIR/build/ios/iphoneos/Runner.app"
+    if [[ ! -d "$RUNNER_APP" ]]; then
+      echo "ERROR: iOS app not found at $RUNNER_APP" >&2
       exit 1
     fi
+    PKG_DIR="$(mktemp -d)"
+    mkdir -p "$PKG_DIR/Payload"
+    cp -R "$RUNNER_APP" "$PKG_DIR/Payload/"
     mkdir -p "$STAGE_DIR"
-    cp "$IPA_SRC" "$STAGE_DIR/$ARTIFACT_NAME"
+    (
+      cd "$PKG_DIR"
+      zip -qr "$STAGE_DIR/$ARTIFACT_NAME" Payload
+    )
+    rm -rf "$PKG_DIR"
     ;;
   *)
     echo "ERROR: unknown platform: $PLATFORM" >&2
