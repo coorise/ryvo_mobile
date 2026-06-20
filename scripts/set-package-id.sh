@@ -36,9 +36,11 @@ fi
 
 PBX="$DIR/ios/Runner.xcodeproj/project.pbxproj"
 if [[ -f "$PBX" ]]; then
-  sed -i.bak \
-    -e "s/PRODUCT_BUNDLE_IDENTIFIER = com\.ryvo\.\(client\|admin\)\(\.[a-z]*\)*;/PRODUCT_BUNDLE_IDENTIFIER = ${PKG};/g" \
-    -e "s/PRODUCT_BUNDLE_IDENTIFIER = com\.ryvo\.\(client\|admin\)\(\.[a-z]*\)*\.RunnerTests;/PRODUCT_BUNDLE_IDENTIFIER = ${PKG}.RunnerTests;/g" \
+  sed -i.bak -E \
+    "s/PRODUCT_BUNDLE_IDENTIFIER = com\\.ryvo\\.(admin|client)(\\.[A-Za-z0-9]+)*;/PRODUCT_BUNDLE_IDENTIFIER = ${PKG};/g" \
+    "$PBX"
+  sed -i.bak -E \
+    "s/PRODUCT_BUNDLE_IDENTIFIER = com\\.ryvo\\.(admin|client)(\\.[A-Za-z0-9]+)*\\.RunnerTests;/PRODUCT_BUNDLE_IDENTIFIER = ${PKG}.RunnerTests;/g" \
     "$PBX"
   rm -f "$PBX.bak"
 fi
