@@ -95,10 +95,10 @@ case "$PLATFORM" in
     rm -rf "$IPA_DIR"
 
     # Simulator build → .zip with Runner.app at root for Appetize.io cloud emulators.
-    # Release mode is not supported on simulators; use profile for a smaller optimized build.
+    # Only debug builds are supported on simulators (release/profile are device-only).
     (
       cd "$APP_DIR"
-      flutter build ios --simulator --profile --no-codesign "${EXTRA_DEFINES[@]}"
+      flutter build ios --simulator --debug --no-codesign "${EXTRA_DEFINES[@]}"
     )
     SIM_APP="$APP_DIR/build/ios/iphonesimulator/Runner.app"
     if [[ ! -d "$SIM_APP" ]]; then
