@@ -41,11 +41,11 @@ jobs:
 
             | Asset | Use |
             |-------|-----|
-            | `${{ steps.build.outputs.artifact_name }}` | Manual sideload / OTA |
-            | `${{ steps.build.outputs.appetize_bundle_name }}` | [Appetize.io](https://appetize.io/) emulator (`.app` at zip root) |
+            | `${{ steps.build.outputs.artifact_name }}` | Device build (`.ipa`, unsigned) — sideload / OTA |
+            | `${{ steps.build.outputs.ios_sim_bundle_name }}` | Simulator `.app` bundle (zip root) — cloud emulators, Xcode Simulator |
 
             Merge `dev` → `dev_ios` to publish client/driver iOS dev build.
           files: |
             .github_releases/mobile/ios/${{ steps.build.outputs.artifact_name }}
-            .github_releases/mobile/ios/${{ steps.build.outputs.appetize_bundle_name }}
+            .github_releases/mobile/ios/${{ steps.build.outputs.ios_sim_bundle_name }}
           prerelease: true

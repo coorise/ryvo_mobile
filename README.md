@@ -96,9 +96,21 @@ Tags include **app**, **platform**, and **environment**:
 | client | Android | `ryvo-android-dev-v1.0.0-2` | `ryvo-android-v1.0.0-2` |
 | client | iOS | `ryvo-ios-dev-v1.0.0-2` | `ryvo-ios-v1.0.0-2` |
 
-Artifacts: `ryvo_admin-android-dev.apk`, `ryvo_admin-ios-dev.ipa`, `ryvo_admin-ios-dev-app.zip`, etc.
+Artifacts per iOS release (all four branches publish both):
 
-**iOS on [Appetize.io](https://appetize.io/):** upload the `*-app.zip` asset. It contains a **simulator** `Runner.app` at the zip root (required by Appetize). Do not use the `.ipa` or GitHub’s auto-generated “Source code (zip)”.
+| App | Env | Device (`.ipa`) | Simulator (`.zip` with `Runner.app` at root) |
+|-----|-----|-----------------|------------------------------------------------|
+| admin | dev | `ryvo_admin-ios-dev.ipa` | `ryvo_admin-ios-dev-simulator-app.zip` |
+| admin | prod | `ryvo_admin-ios.ipa` | `ryvo_admin-ios-simulator-app.zip` |
+| client | dev | `ryvo-ios-dev.ipa` | `ryvo-ios-dev-simulator-app.zip` |
+| client | prod | `ryvo-ios.ipa` | `ryvo-ios-simulator-app.zip` |
+
+**iOS assets (portable, platform-agnostic):**
+
+- **`.ipa`** — device build (`Payload/Runner.app`). Use for sideload, signing pipelines, or physical-device OTA.
+- **`*-simulator-app.zip`** — debug simulator `Runner.app` at the zip root. Use with any cloud emulator ([Appetize.io](https://appetize.io/), BrowserStack, etc.), or unzip and drag into Xcode Simulator.
+
+Do not use GitHub’s auto-generated “Source code (zip)” — it contains no compiled `.app`.
 
 ### Release flow
 

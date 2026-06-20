@@ -19,9 +19,9 @@ export RYVO_UPDATE_CHANNEL="${RYVO_UPDATE_CHANNEL:-remote}"
 APP_SLUG="$(resolve_app_slug "$APP")"
 APP_DIR="$(app_flutter_dir "$APP")"
 ARTIFACT_NAME="$(resolve_release_artifact_name "$APP_SLUG" "$TARGET" "$PLATFORM")"
-APPETIZE_BUNDLE_NAME=""
+IOS_SIM_BUNDLE_NAME=""
 if [[ "$PLATFORM" == "ios" ]]; then
-  APPETIZE_BUNDLE_NAME="$(resolve_release_appetize_bundle_name "$APP_SLUG" "$TARGET" "$PLATFORM")"
+  IOS_SIM_BUNDLE_NAME="$(resolve_release_ios_simulator_bundle_name "$APP_SLUG" "$TARGET" "$PLATFORM")"
 fi
 STAGE_DIR="$MOBILE_ROOT/.github_releases/mobile/$PLATFORM"
 
@@ -52,7 +52,7 @@ case "$PLATFORM" in
       "--dart-define=RELEASE_BRANCH=${RELEASE_BRANCH}"
     )
 
-    # Device build → IPA (Payload/Runner.app) for sideload / OTA.
+    # Device build → IPA (Payload/Runner.app) for sideload, TestFlight prep, or OTA.
     (
       cd "$APP_DIR"
       flutter pub get
@@ -94,8 +94,8 @@ case "$PLATFORM" in
     )
     rm -rf "$IPA_DIR"
 
-    # Simulator build → .zip with Runner.app at root for Appetize.io cloud emulators.
-    # Only debug builds are supported on simulators (release/profile are device-only).
+    # Simulator build → .zip with Runner.app at root (portable for any cloud/local emulator).
+    # Debug is the only Flutter mode supported on ios simulator targets.
     (
       cd "$APP_DIR"
       flutter build ios --simulator --debug --no-codesign "${EXTRA_DEFINES[@]}"
@@ -107,15 +107,15 @@ case "$PLATFORM" in
     fi
     patch_ios_app_plist "$SIM_APP"
 
-    APPETIZE_DIR="$(mktemp -d)"
-    cp -R "$SIM_APP" "$APPETIZE_DIR/Runner.app"
+    SIM_ZIP_DIR="$(mktemp -d)"
+    cp -R "$SIM_APP" "$SIM_ZIP_DIR/Runner.app"
     (
-      cd "$APPETIZE_DIR"
-      zip -qr "$STAGE_DIR/$APPETIZE_BUNDLE_NAME" Runner.app
+      cd "$SIM_ZIP_DIR"
+      zip -qr "$STAGE_DIR/$IOS_SIM_BUNDLE_NAME" Runner.app
     )
-    rm -rf "$APPETIZE_DIR"
+    rm -rf "$SIM_ZIP_DIR"
 
-    echo "==> Appetize bundle: $APPETIZE_BUNDLE_NAME (simulator Runner.app at zip root)"
+    echo "==> iOS simulator bundle: $IOS_SIM_BUNDLE_NAME (Runner.app at zip root)"
     ;;
   *)
     echo "ERROR: unknown platform: $PLATFORM" >&2
@@ -135,13 +135,13 @@ if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "app_slug=$APP_SLUG"
     echo "platform=$PLATFORM"
     echo "release_branch=$RELEASE_BRANCH"
-    if [[ -n "$APPETIZE_BUNDLE_NAME" ]]; then
-      echo "appetize_bundle_name=$APPETIZE_BUNDLE_NAME"
+    if [[ -n "$IOS_SIM_BUNDLE_NAME" ]]; then
+      echo "ios_sim_bundle_name=$IOS_SIM_BUNDLE_NAME"
     fi
   } >>"$GITHUB_OUTPUT"
 fi
 
 echo "==> staged $ARTIFACT_NAME (tag: $TAG, version: $RAW, branch: $RELEASE_BRANCH)"
-if [[ -n "$APPETIZE_BUNDLE_NAME" ]]; then
-  echo "==> staged $APPETIZE_BUNDLE_NAME for Appetize.io"
+if [[ -n "$IOS_SIM_BUNDLE_NAME" ]]; then
+  echo "==> staged $IOS_SIM_BUNDLE_NAME (simulator .app bundle)"
 fi
