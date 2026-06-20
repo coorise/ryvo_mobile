@@ -54,6 +54,18 @@ resolve_release_artifact_name() {
   fi
 }
 
+# Appetize.io and similar emulators need a .zip/.tar.gz with Runner.app at archive root.
+resolve_release_appetize_bundle_name() {
+  local app_slug="$1"
+  local target="$2"
+  local platform="$3"
+  if [[ "$target" == "prod" ]]; then
+    echo "${app_slug}-${platform}-app.zip"
+  else
+    echo "${app_slug}-${platform}-${target}-app.zip"
+  fi
+}
+
 resolve_release_tag() {
   local app_slug="$1"
   local target="$2"

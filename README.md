@@ -96,7 +96,9 @@ Tags include **app**, **platform**, and **environment**:
 | client | Android | `ryvo-android-dev-v1.0.0-2` | `ryvo-android-v1.0.0-2` |
 | client | iOS | `ryvo-ios-dev-v1.0.0-2` | `ryvo-ios-v1.0.0-2` |
 
-Artifacts: `ryvo_admin-android-dev.apk`, `ryvo_admin-ios-dev.ipa`, etc.
+Artifacts: `ryvo_admin-android-dev.apk`, `ryvo_admin-ios-dev.ipa`, `ryvo_admin-ios-dev-app.zip`, etc.
+
+**iOS on [Appetize.io](https://appetize.io/):** upload the `*-app.zip` asset. It contains a **simulator** `Runner.app` at the zip root (required by Appetize). Do not use the `.ipa` or GitHub’s auto-generated “Source code (zip)”.
 
 ### Release flow
 

@@ -36,9 +36,16 @@ jobs:
           name: Ryvo Admin iOS (dev) ${{ steps.build.outputs.tag }}
           body: |
             **Version:** `${{ steps.build.outputs.raw }}`
-            **Platform:** iOS (unsigned IPA — install manually)
+            **Platform:** iOS (unsigned)
             **Release branch:** `dev_ios_admin`
 
+            | Asset | Use |
+            |-------|-----|
+            | `${{ steps.build.outputs.artifact_name }}` | Manual sideload / OTA |
+            | `${{ steps.build.outputs.appetize_bundle_name }}` | [Appetize.io](https://appetize.io/) emulator (`.app` at zip root) |
+
             Merge `dev` → `dev_ios_admin` to publish admin iOS dev build.
-          files: .github_releases/mobile/ios/${{ steps.build.outputs.artifact_name }}
+          files: |
+            .github_releases/mobile/ios/${{ steps.build.outputs.artifact_name }}
+            .github_releases/mobile/ios/${{ steps.build.outputs.appetize_bundle_name }}
           prerelease: true
