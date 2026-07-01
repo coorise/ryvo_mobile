@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'package:ryvo/components/layout/language_switcher.dart';
 import 'package:ryvo/components/layout/portal_drawer.dart';
+import 'package:ryvo/components/permissions/permissions_check_host.dart';
 import 'package:ryvo/components/update/update_check_host.dart';
 import 'package:ryvo/configs/const.dart';
 import 'package:ryvo/configs/portal_bottom_nav.dart';
@@ -31,6 +32,7 @@ class _PortalShellState extends ConsumerState<PortalShell> {
   void initState() {
     super.initState();
     scheduleUpdatePrompt(context);
+    schedulePermissionsPrompt(context, widget.area);
   }
 
   List<PortalBottomNavItem> get _bottomItems => portalBottomNavItems(widget.area);

@@ -14,6 +14,7 @@ class AppConst {
   static const storageNavExpanded = 'ryvo.admin.nav.expanded.v1';
   static const storagePasswordReset = 'ryvo.password-reset.v1';
   static const storageIgnoredRelease = 'ryvo.admin.ignored_release.v1';
+  static const storagePermissionsDismissedVersion = 'ryvo.admin.permissions.dismissed.v1';
 }
 
 class Routes {

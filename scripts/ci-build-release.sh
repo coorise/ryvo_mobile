@@ -34,7 +34,7 @@ case "$PLATFORM" in
     REQUIRE_ANDROID_SIGNING=1 "$SCRIPT_DIR/setup-android-signing.sh" "$TARGET" "$APP"
     (
       cd "$APP_DIR"
-      ./run_build.sh release "--$TARGET"
+      ./run_build_android.sh release "--$TARGET"
     )
     mkdir -p "$STAGE_DIR"
     cp "$APP_DIR/build/app/outputs/flutter-apk/app-release.apk" \

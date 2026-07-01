@@ -1358,5 +1358,73 @@
       "lastSeen": "Last seen",
       "status": "Status"
     }
+  },
+  "permissions": {
+    "title": "App permissions",
+    "subtitle": "Ryvo-Line works best with these permissions. You can enable each one individually.",
+    "adminSubtitle": "Enable the permissions below so staff can use maps, notifications, and document review.",
+    "continueAnyway": "Continue anyway",
+    "enableAll": "Enable all",
+    "done": "Done",
+    "enable": "Enable",
+    "openSettings": "Open settings",
+    "status": {
+      "granted": "Granted",
+      "limited": "Limited",
+      "denied": "Not granted",
+      "blocked": "Blocked — open settings",
+      "restricted": "Restricted",
+      "unknown": "Unknown"
+    },
+    "location": {
+      "title": "Location while using the app",
+      "description": "Show your position on the map, find nearby rides, and navigate trips.",
+      "adminDescription": "Show fleet activity and the live operations map while the admin app is open."
+    },
+    "locationAlways": {
+      "title": "Background location",
+      "description": "Keep trip tracking alive when the app is in the background — riders see their driver approaching, drivers stay online for incoming requests, and pickup locations stay accurate."
+    },
+    "sms": {
+      "title": "SMS",
+      "description": "Verify your phone number with one-time codes sent by SMS.",
+      "adminDescription": "Verify staff phone numbers with one-time codes sent by SMS."
+    },
+    "camera": {
+      "title": "Camera",
+      "description": "Take photos of your ID, license, and vehicle documents for verification.",
+      "adminDescription": "Capture verification photos when reviewing driver KYC submissions."
+    },
+    "photos": {
+      "title": "Photos",
+      "description": "Upload existing documents and profile images from your library.",
+      "adminDescription": "Open uploaded KYC files and support attachments from device storage."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Get ride requests, live trip status on a persistent notification, and important account alerts.",
+      "adminDescription": "Receive operations alerts, support tickets, and trip escalations."
+    },
+    "notificationPolicy": {
+      "title": "Do Not Disturb access",
+      "description": "Show urgent trip and ride-request alerts even when Do Not Disturb is enabled."
+    },
+    "exactAlarm": {
+      "title": "Exact alarms",
+      "description": "Schedule precise pickup reminders and trip countdown alerts."
+    },
+    "activity": {
+      "title": "Physical activity",
+      "description": "Detect driving activity to improve location accuracy while you are online."
+    },
+    "battery": {
+      "title": "Battery optimization",
+      "description": "Reduce interruptions to location sharing while you are online as a driver."
+    },
+    "install": {
+      "title": "Install app updates",
+      "description": "Install newer Ryvo-Line builds downloaded from GitHub OTA releases.",
+      "adminDescription": "Install newer Ryvo-Line Admin builds downloaded from GitHub OTA releases."
+    }
   }
 }

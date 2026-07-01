@@ -39,7 +39,14 @@ Uses [shadcn_ui](https://pub.dev/packages/shadcn_ui) (Flutter port of shadcn/ui)
 ## Prerequisites
 
 1. **Flutter** 3.41+ (`flutter doctor` should pass)
-2. **Android SDK** at `~/Android/Sdk`
+2. **Android:** SDK at `~/Android/Sdk`
+3. **iOS:** macOS with **Xcode 15+** (simulator or device)
+
+### Script permissions (macOS / Linux)
+
+```bash
+chmod +x run_dev_android.sh run_dev_ios.sh run_build_android.sh run_build_ios.sh
+```
 
 ### Android SDK / `flutter doctor`
 
@@ -62,7 +69,14 @@ export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
 
 ## Configure Supabase
 
-Copy `ANON_KEY` from `server/supabase/.env` and run with `--dart-define`:
+`ANON_KEY` is loaded from `server/supabase/.env` when you use the helper scripts.
+
+| Platform | Local backend URL |
+|----------|-------------------|
+| Android emulator | `http://10.0.2.2:8400` |
+| iOS Simulator | `http://localhost:8400` |
+
+Manual override:
 
 ```bash
 flutter run \
@@ -71,7 +85,7 @@ flutter run \
   --dart-define=FUNCTIONS_URL=http://10.0.2.2:8400/functions/v1
 ```
 
-Use `10.0.2.2` for the Android emulator to reach the host machine's `localhost:8400`.
+Use `localhost` instead of `10.0.2.2` when running on the iOS Simulator.
 
 ## Run
 
@@ -80,16 +94,22 @@ Use `10.0.2.2` for the Android emulator to reach the host machine's `localhost:8
 From this directory:
 
 ```bash
-# Dev: hot reload on the first Android emulator/device
-./run_dev.sh
+# Android — hot reload on first emulator/device
+./run_dev_android.sh
 
-# Dev: web (Chrome when DISPLAY is set, otherwise web-server)
+# iOS — hot reload on simulator (macOS only)
+./run_dev_ios.sh
+
+# Web (Chrome or web-server on headless Linux)
 ./run_dev_web.sh --web-port=7357
-# Then open http://localhost:7357
 
-# Build APK (reads ANON_KEY from server/supabase/.env automatically)
-./run_build.sh dev      # debug APK
-./run_build.sh release  # release APK
+# Build APK
+./run_build_android.sh dev      # debug APK
+./run_build_android.sh release  # release APK
+
+# Build iOS (macOS only)
+./run_build_ios.sh dev          # simulator debug .app
+./run_build_ios.sh release      # unsigned device build
 
 # Regenerate launcher icons after changing assets/icons/app_icon.png
 dart run flutter_launcher_icons
@@ -98,9 +118,9 @@ dart run flutter_launcher_icons
 Optional overrides:
 
 ```bash
-export FLUTTER_DEVICE=emulator-5554
-export SUPABASE_URL=http://10.0.2.2:8400
-./run_dev.sh
+export FLUTTER_DEVICE=emulator-5554   # Android
+export FLUTTER_DEVICE=<simulator-id>  # iOS — from `flutter devices`
+./run_dev_android.sh
 ```
 
 ### Manual flutter run
@@ -125,7 +145,7 @@ yes | sdkmanager --install "ndk;28.2.13676358"
 
 **No emulator:** start one in Android Studio, or `flutter emulators --launch <id>`.
 
-**Login fails / loops back to sign-in:** ensure local Supabase is running and `./run_dev.sh` loads `ANON_KEY` from `server/supabase/.env`. Admin roles come from the JWT + `/v1/admin/rbac/me` enrichment (same as web).
+**Login fails / loops back to sign-in:** ensure local Supabase is running and you used `./run_dev_android.sh` or `./run_dev_ios.sh` (loads `ANON_KEY` from `server/supabase/.env`). Admin roles come from the JWT + `/v1/admin/rbac/me` enrichment (same as web).
 
 **Web on headless Linux:** `./run_dev_web.sh` uses `web-server` automatically; open the printed URL in a browser.
 

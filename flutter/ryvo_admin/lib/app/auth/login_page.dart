@@ -67,8 +67,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final configured = supabaseIsReady && Env.supabaseAnonKey.isNotEmpty;
     final configError = configured
         ? null
-        : 'Supabase is not configured. Run ./run_dev.sh or ./run_build.sh '
-            '(loads ANON_KEY from server/supabase/.env).';
+        : 'Supabase is not configured. Run ./run_dev_android.sh, ./run_dev_ios.sh, '
+            'or ./run_build_android.sh (loads ANON_KEY from server/supabase/.env).';
 
     return Scaffold(
       body: SafeArea(

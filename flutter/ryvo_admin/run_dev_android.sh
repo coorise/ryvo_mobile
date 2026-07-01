@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Run Ryvo admin on Android (hot reload).
-# Usage: ./run_dev.sh [--local|--dev|--prod] [--remote-updates|--no-remote-updates] [flutter run args…]
+# Usage: ./run_dev_android.sh [--local|--dev|--prod] [--remote-updates|--no-remote-updates] [flutter run args…]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
+
+export RYVO_FLUTTER_TARGET=android
+export RYVO_RELEASE_PLATFORM=android
 
 # shellcheck source=scripts/flutter-env.sh
 source "$ROOT/scripts/flutter-env.sh"
@@ -22,7 +25,7 @@ apply_package_id
 DEVICE="$(resolve_flutter_device)"
 mapfile -t DART_DEFINES < <(flutter_dart_defines)
 
-echo "==> ryvo_admin dev run"
+echo "==> ryvo_admin dev run (android)"
 echo "    device: $DEVICE"
 echo "    deploy: $RYVO_DEPLOY_TARGET"
 echo "    updates: $RYVO_UPDATE_CHANNEL"

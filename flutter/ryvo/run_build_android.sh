@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build Ryvo client APK.
-# Usage: ./run_build.sh dev|release [--local|--dev|--prod]
+# Build Ryvo client Android APK.
+# Usage: ./run_build_android.sh dev|release [--local|--dev|--prod]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,6 +13,9 @@ if [[ "$MODE" != "dev" && "$MODE" != "release" ]]; then
   echo "Usage: $0 dev|release [--local|--dev|--prod]" >&2
   exit 1
 fi
+
+export RYVO_FLUTTER_TARGET=android
+export RYVO_RELEASE_PLATFORM=android
 
 # shellcheck source=scripts/flutter-env.sh
 source "$ROOT/scripts/flutter-env.sh"
@@ -28,7 +31,7 @@ done
 apply_package_id
 mapfile -t DART_DEFINES < <(flutter_dart_defines)
 
-echo "==> ryvo client build ($MODE)"
+echo "==> ryvo client build ($MODE, android)"
 echo "    deploy: $RYVO_DEPLOY_TARGET"
 echo "    updates: $RYVO_UPDATE_CHANNEL"
 echo "    package: $(resolve_package_id client)"

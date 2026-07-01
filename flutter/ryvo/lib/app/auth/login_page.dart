@@ -75,7 +75,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final configured = supabaseIsReady && Env.supabaseAnonKey.isNotEmpty;
     final configError = configured
         ? null
-        : 'Supabase is not configured. Run ./run_dev.sh or ./run_build.sh.';
+        : 'Supabase is not configured. Run ./run_dev_android.sh, ./run_dev_ios.sh, or ./run_build_android.sh.';
 
     return AuthFormShell(
       title: T.nav('auth.login.title'),

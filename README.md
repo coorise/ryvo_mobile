@@ -26,15 +26,31 @@ Package IDs are applied with [change_app_package_name](https://pub.dev/packages/
 ./scripts/set-package-id.sh client local
 ```
 
+## Client — local dev
+
+```bash
+cd flutter/ryvo
+chmod +x run_dev_android.sh run_dev_ios.sh run_build_android.sh run_build_ios.sh
+
+./run_dev_android.sh          # Android emulator @ 10.0.2.2:8400
+./run_dev_ios.sh              # iOS Simulator @ localhost:8400 (macOS)
+./run_build_android.sh dev
+```
+
+See [`flutter/ryvo/README.md`](flutter/ryvo/README.md) for driver/client credentials and troubleshooting.
+
 ## Admin — local dev
 
 Requires sibling [Ryvo server](https://github.com/coorise/ryvo) checkout (`../ryvo/server/supabase/.env`) or exported secrets.
 
 ```bash
 cd flutter/ryvo_admin
-./run_dev.sh                  # local Supabase @ 10.0.2.2:8400, no OTA checks
-./run_dev.sh --dev            # dev backend + remote release checks
-./run_build.sh release --prod
+chmod +x run_dev_android.sh run_dev_ios.sh run_build_android.sh run_build_ios.sh
+
+./run_dev_android.sh          # Android — local Supabase @ 10.0.2.2:8400
+./run_dev_ios.sh              # iOS — local Supabase @ localhost:8400 (macOS)
+./run_dev_android.sh --dev    # dev backend + remote release checks
+./run_build_android.sh release --prod
 ```
 
 ### Update channel

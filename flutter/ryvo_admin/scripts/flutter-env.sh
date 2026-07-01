@@ -20,16 +20,34 @@ if [[ -f "$SCRIPT_DIR/android-env.sh" ]]; then
 fi
 
 : "${RYVO_FLUTTER_TARGET:=android}"
+: "${RYVO_RELEASE_PLATFORM:=${RYVO_FLUTTER_TARGET}}"
+
+apply_local_backend_urls() {
+  if [[ "${RYVO_DEPLOY_TARGET}" != "local" ]]; then
+    return
+  fi
+  case "$RYVO_FLUTTER_TARGET" in
+    android)
+      : "${SUPABASE_URL:=http://10.0.2.2:8400}"
+      : "${FUNCTIONS_URL:=http://10.0.2.2:8400/functions/v1}"
+      ;;
+    ios)
+      : "${SUPABASE_URL:=http://localhost:8400}"
+      : "${FUNCTIONS_URL:=http://localhost:8400/functions/v1}"
+      ;;
+    *)
+      : "${SUPABASE_URL:=http://localhost:8400}"
+      : "${FUNCTIONS_URL:=http://localhost:8400/functions/v1}"
+      ;;
+  esac
+}
 
 if [[ "$RYVO_FLUTTER_TARGET" == "web" ]]; then
   : "${SUPABASE_URL:=http://localhost:8400}"
   : "${FUNCTIONS_URL:=http://localhost:8400/functions/v1}"
   : "${FLUTTER_DEVICE:=chrome}"
 else
-  if [[ "${RYVO_DEPLOY_TARGET}" == "local" ]]; then
-    : "${SUPABASE_URL:=http://10.0.2.2:8400}"
-    : "${FUNCTIONS_URL:=http://10.0.2.2:8400/functions/v1}"
-  fi
+  apply_local_backend_urls
   : "${FLUTTER_DEVICE:=}"
 fi
 
@@ -64,7 +82,7 @@ flutter_dart_defines() {
   echo "--dart-define=RELEASE_PLATFORM=${RYVO_RELEASE_PLATFORM:-android}"
 }
 
-resolve_flutter_device() {
+resolve_flutter_android_device() {
   if [[ -n "${FLUTTER_DEVICE:-}" ]]; then
     echo "$FLUTTER_DEVICE"
     return
@@ -76,6 +94,27 @@ resolve_flutter_device() {
     exit 1
   fi
   echo "$id"
+}
+
+resolve_flutter_ios_device() {
+  if [[ -n "${FLUTTER_DEVICE:-}" ]]; then
+    echo "$FLUTTER_DEVICE"
+    return
+  fi
+  local id
+  id="$(flutter devices 2>/dev/null | grep -Ei '• ios|• iphone|simulator' | head -1 | awk -F'•' '{gsub(/^ +| +$/,"",$2); print $2}' || true)"
+  if [[ -z "$id" ]]; then
+    echo "ERROR: No iOS simulator/device found. Open Xcode Simulator or set FLUTTER_DEVICE=<id>" >&2
+    exit 1
+  fi
+  echo "$id"
+}
+
+resolve_flutter_device() {
+  case "$RYVO_FLUTTER_TARGET" in
+    ios) resolve_flutter_ios_device ;;
+    *) resolve_flutter_android_device ;;
+  esac
 }
 
 resolve_flutter_web_device() {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build Ryvo admin APK.
-# Usage: ./run_build.sh dev|release [--local|--dev|--prod]
+# Build Ryvo admin iOS app. Requires macOS + Xcode.
+# Usage: ./run_build_ios.sh dev|release [--local|--dev|--prod]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,6 +13,9 @@ if [[ "$MODE" != "dev" && "$MODE" != "release" ]]; then
   echo "Usage: $0 dev|release [--local|--dev|--prod]" >&2
   exit 1
 fi
+
+export RYVO_FLUTTER_TARGET=ios
+export RYVO_RELEASE_PLATFORM=ios
 
 # shellcheck source=scripts/flutter-env.sh
 source "$ROOT/scripts/flutter-env.sh"
@@ -28,24 +31,22 @@ done
 apply_package_id
 mapfile -t DART_DEFINES < <(flutter_dart_defines)
 
-echo "==> ryvo_admin build ($MODE)"
+echo "==> ryvo_admin build ($MODE, ios)"
 echo "    deploy: $RYVO_DEPLOY_TARGET"
 echo "    updates: $RYVO_UPDATE_CHANNEL"
 echo "    package: $(resolve_package_id admin)"
-echo "    signing: android/.keys/${RYVO_DEPLOY_TARGET}/"
 echo "    defines: ${APP_ROOT}/dart_defines.json"
 echo ""
 
 flutter pub get
 
 if [[ "$MODE" == "dev" ]]; then
-  flutter build apk --debug "${DART_DEFINES[@]}"
+  flutter build ios --simulator --debug --no-codesign "${DART_DEFINES[@]}"
   echo ""
-  echo "Done: $ROOT/build/app/outputs/flutter-apk/app-debug.apk"
+  echo "Done: $ROOT/build/ios/iphonesimulator/Runner.app"
 else
-  prepare_android_signing 1
-  export RYVO_DEPLOY_TARGET
-  flutter build apk --release "${DART_DEFINES[@]}"
+  flutter build ios --release --no-codesign "${DART_DEFINES[@]}"
   echo ""
-  echo "Done: $ROOT/build/app/outputs/flutter-apk/app-release.apk"
+  echo "Done: $ROOT/build/ios/iphoneos/Runner.app"
+  echo "Tip: CI packages this as an unsigned .ipa — see scripts/ci-build-release.sh"
 fi

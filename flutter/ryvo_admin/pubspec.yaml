@@ -1,7 +1,7 @@
 name: ryvo_admin
 description: Ryvo-Line admin mobile app — mirrors client/web/ryvo_admin architecture.
 publish_to: "none"
-version: 1.0.2+12
+version: 1.0.2+13
 
 environment:
   sdk: ^3.11.5
@@ -28,6 +28,7 @@ dependencies:
   path_provider: ^2.1.5
   open_filex: ^4.7.0
   google_maps_flutter: ^2.12.3
+  permission_handler: ^12.0.3
 
 dev_dependencies:
   flutter_test:

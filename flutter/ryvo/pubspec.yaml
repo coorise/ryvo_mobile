@@ -1,7 +1,7 @@
 name: ryvo
 description: Ryvo-Line client/driver mobile app — mirrors client/web/ryvo portal architecture.
 publish_to: "none"
-version: 1.0.0+5
+version: 1.0.0+6
 
 environment:
   sdk: ^3.11.5
@@ -31,6 +31,7 @@ dependencies:
   google_maps_flutter: ^2.12.3
   uuid: ^4.5.1
   url_launcher: ^6.3.1
+  permission_handler: ^12.0.3
 
 dev_dependencies:
   flutter_test:

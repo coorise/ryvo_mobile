@@ -66,5 +66,14 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ryvo-Line Admin uses your location to show the live operations map and nearby fleet activity.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Ryvo-Line Admin uses the camera to capture or review driver verification documents.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ryvo-Line Admin accesses photos so staff can review uploaded KYC and support attachments.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Ryvo-Line Admin may save exported reports or verification images when you choose to.</string>
 </dict>
 </plist>

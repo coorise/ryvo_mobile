@@ -66,5 +66,23 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ryvo-Line uses your location to find nearby rides, show your trip on the map, and match you with drivers.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Ryvo-Line uses background location during active trips and when drivers are online so riders can track their driver, drivers can reach pickup points, and live trip status keeps updating even when the app is in the background.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Ryvo-Line uses the camera to capture identity and vehicle documents for driver verification.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ryvo-Line accesses your photo library so you can upload KYC documents and profile images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Ryvo-Line may save trip receipts or verification photos to your library when you choose to.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Ryvo-Line uses motion activity to detect when drivers are driving and improve location accuracy.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>
