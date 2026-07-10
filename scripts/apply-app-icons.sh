@@ -29,21 +29,28 @@ if [[ ! -f "$BASE_ICON" ]]; then
   exit 1
 fi
 
-if ! python3 -c "import PIL" 2>/dev/null; then
-  python3 -m pip install --quiet --user Pillow \
-    || python3 -m pip install --quiet --break-system-packages Pillow \
-    || {
-      echo "ERROR: Pillow is required for icon badges (pip install Pillow)" >&2
-      exit 1
-    }
-fi
-
 echo "==> apply-app-icons"
 echo "    app: $APP"
 echo "    target: $RYVO_DEPLOY_TARGET"
 echo ""
 
-python3 "$ROOT/scripts/generate-badged-icon.py" "$RYVO_DEPLOY_TARGET" "$BASE_ICON" "$GEN_ICON"
+if ! python3 -c "import PIL" 2>/dev/null; then
+  if python3 -m pip install --quiet --user Pillow 2>/dev/null \
+    || python3 -m pip install --quiet --break-system-packages Pillow 2>/dev/null; then
+    :
+  elif [[ "$RYVO_DEPLOY_TARGET" == "prod" ]]; then
+    echo "ERROR: Pillow is required for prod icon badges (pip install Pillow)" >&2
+    exit 1
+  else
+    echo "WARNING: Pillow unavailable; using base icon without LOCAL/DEV badge"
+    mkdir -p "$GEN_DIR"
+    cp "$BASE_ICON" "$GEN_ICON"
+  fi
+fi
+
+if python3 -c "import PIL" 2>/dev/null; then
+  python3 "$ROOT/scripts/generate-badged-icon.py" "$RYVO_DEPLOY_TARGET" "$BASE_ICON" "$GEN_ICON"
+fi
 
 cat > "$ICON_CONFIG" <<EOF
 flutter_launcher_icons:

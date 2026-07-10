@@ -25,6 +25,9 @@ apply_package_id
 DEVICE="$(resolve_flutter_device)"
 mapfile -t DART_DEFINES < <(flutter_dart_defines)
 
+# iOS 26: keep classic AppDelegate; UIScene auto-migration can black-screen the simulator.
+flutter config --no-enable-uiscene-migration >/dev/null 2>&1 || true
+
 echo "==> ryvo_admin dev run (ios)"
 echo "    device: $DEVICE"
 echo "    deploy: $RYVO_DEPLOY_TARGET"

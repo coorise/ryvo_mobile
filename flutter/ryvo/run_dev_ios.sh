@@ -23,6 +23,9 @@ done
 apply_package_id
 mapfile -t DART_DEFINES < <(flutter_dart_defines)
 
+# iOS 26: keep classic AppDelegate; UIScene auto-migration can black-screen the simulator.
+flutter config --no-enable-uiscene-migration >/dev/null 2>&1 || true
+
 cd "$ROOT"
 flutter pub get
 DEVICE="$(resolve_flutter_device)"
