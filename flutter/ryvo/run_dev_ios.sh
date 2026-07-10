@@ -37,6 +37,8 @@ echo "    package: $(resolve_package_id client)"
 echo "    supabase: ${SUPABASE_URL:-from dart_defines.json}"
 echo ""
 
+ios_warn_if_no_metal
+
 export RYVO_DEPLOY_TARGET
 exec flutter run \
   -d "${FLUTTER_DEVICE:-$DEVICE}" \

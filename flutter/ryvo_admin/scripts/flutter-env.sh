@@ -22,6 +22,21 @@ fi
 : "${RYVO_FLUTTER_TARGET:=android}"
 : "${RYVO_RELEASE_PLATFORM:=${RYVO_FLUTTER_TARGET}}"
 
+ios_warn_if_no_metal() {
+  if [[ "${RYVO_FLUTTER_TARGET:-}" != "ios" ]]; then
+    return
+  fi
+  local gpu_info
+  gpu_info="$(system_profiler SPDisplaysDataType 2>/dev/null || true)"
+  if echo "$gpu_info" | grep -qiE 'VMware|Virtual|QEMU|0x15ad|Software Renderer'; then
+    echo ""
+    echo "WARN: Virtual GPU (no Metal) — iOS Simulator may show a black screen with Flutter 3.29+."
+    echo "      The app still runs; verify with idb: ui describe-all, ui tap, list-apps."
+    echo "      For visible UI use a physical Mac/iPhone or enable GPU passthrough in the VM."
+    echo ""
+  fi
+}
+
 apply_local_backend_urls() {
   if [[ "${RYVO_DEPLOY_TARGET}" != "local" ]]; then
     return

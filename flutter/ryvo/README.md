@@ -78,4 +78,6 @@ export FLUTTER_DEVICE=<simulator-id>  # optional: flutter devices
 
 **Supabase not configured:** run via `./run_dev_android.sh` or `./run_dev_ios.sh` — they load `dart_defines.json` automatically.
 
+**iOS Simulator black screen (Docker macOS / QEMU):** Flutter 3.29+ uses Impeller on iOS, which requires Metal. A [dockurr/macos](https://hub.docker.com/r/dockurr/macos) VM has no GPU passthrough, so the simulator framebuffer stays black even though the app runs. Confirm with [idb](https://fbidb.io/docs/commands) (`ui describe-all` should list Sign in, Register, etc.). `--no-enable-impeller` and `FLTEnableImpeller=false` do **not** restore Skia on Flutter 3.44+. Use a physical Mac/iPhone for visible UI, or test headlessly via idb.
+
 More on branches, OTA releases, and CI: [`client/mobile/README.md`](../../README.md).

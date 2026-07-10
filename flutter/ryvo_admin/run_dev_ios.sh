@@ -37,6 +37,8 @@ echo "    supabase: ${SUPABASE_URL:-from dart_defines.json}"
 echo "    defines: ${APP_ROOT}/dart_defines.json"
 echo ""
 
+ios_warn_if_no_metal
+
 flutter pub get
 
 exec flutter run \
