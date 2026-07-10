@@ -71,8 +71,11 @@ android_gradle_args() {
 }
 
 flutter_dart_defines() {
-  "$MOBILE_ROOT/scripts/write-dart-defines.sh" "$APP_ROOT" "ryvo_admin" >/dev/null
-  echo "--dart-define-from-file=${APP_ROOT}/dart_defines.json"
+  local defines_file="${APP_ROOT}/dart_defines.json"
+  if [[ ! -f "$defines_file" ]]; then
+    "$MOBILE_ROOT/scripts/write-dart-defines.sh" "$APP_ROOT" "ryvo_admin" >/dev/null
+  fi
+  echo "--dart-define-from-file=${defines_file}"
   # Repeat critical flags explicitly — some Flutter release builds skip file-only defines.
   echo "--dart-define=DEPLOY_TARGET=${RYVO_DEPLOY_TARGET}"
   echo "--dart-define=UPDATE_CHANNEL=${RYVO_UPDATE_CHANNEL}"

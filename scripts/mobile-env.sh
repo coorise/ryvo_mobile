@@ -175,3 +175,14 @@ parse_run_flags() {
   done
   export RYVO_DEPLOY_TARGET RYVO_UPDATE_CHANNEL
 }
+
+# macOS ships bash 3.2 (no mapfile). Read command output into a named array.
+read_cmd_lines() {
+  local _var="$1"
+  shift
+  local _line
+  eval "$_var=()"
+  while IFS= read -r _line; do
+    eval "$_var+=(\"\$_line\")"
+  done < <("$@")
+}

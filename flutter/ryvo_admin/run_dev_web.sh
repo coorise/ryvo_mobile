@@ -11,7 +11,7 @@ export RYVO_FLUTTER_TARGET=web
 source "$ROOT/scripts/flutter-env.sh"
 
 DEVICE="$(resolve_flutter_web_device)"
-mapfile -t DART_DEFINES < <(flutter_dart_defines)
+read_cmd_lines DART_DEFINES flutter_dart_defines
 
 echo "==> ryvo_admin web dev run"
 echo "    device: $DEVICE"

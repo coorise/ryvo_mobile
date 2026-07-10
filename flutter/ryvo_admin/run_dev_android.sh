@@ -23,7 +23,7 @@ done
 
 apply_package_id
 DEVICE="$(resolve_flutter_device)"
-mapfile -t DART_DEFINES < <(flutter_dart_defines)
+read_cmd_lines DART_DEFINES flutter_dart_defines
 
 echo "==> ryvo_admin dev run (android)"
 echo "    device: $DEVICE"

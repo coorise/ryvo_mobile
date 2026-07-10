@@ -29,7 +29,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 apply_package_id
-mapfile -t DART_DEFINES < <(flutter_dart_defines)
+read_cmd_lines DART_DEFINES flutter_dart_defines
 
 echo "==> ryvo_admin build ($MODE, ios)"
 echo "    deploy: $RYVO_DEPLOY_TARGET"

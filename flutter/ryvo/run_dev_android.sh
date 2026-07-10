@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 apply_package_id
-mapfile -t DART_DEFINES < <(flutter_dart_defines)
+read_cmd_lines DART_DEFINES flutter_dart_defines
 
 cd "$ROOT"
 flutter pub get

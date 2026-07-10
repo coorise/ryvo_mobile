@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 apply_package_id
-mapfile -t DART_DEFINES < <(flutter_dart_defines)
+read_cmd_lines DART_DEFINES flutter_dart_defines
 
 # iOS 26: keep classic AppDelegate; UIScene auto-migration can black-screen the simulator.
 flutter config --no-enable-uiscene-migration >/dev/null 2>&1 || true
